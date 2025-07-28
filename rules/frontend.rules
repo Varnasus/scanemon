@@ -1,5 +1,23 @@
 # Frontend Development Rules
 
+## Project Phases
+### Phase 1: Core Functionality & Stability
+- Comprehensive Testing Framework
+- Security Hardening
+- Performance Optimization
+- Mobile PWA Optimization
+
+### Phase 2: Product Enhancement
+- Enhanced Collection System UI
+- Advanced AI Features UI
+- Social Features UI
+- Marketplace & Price Integration UI
+
+### Phase 3: Monetization & Growth
+- Freemium Limits UI
+- Stripe Integration UI
+- Monitoring & Analytics UI
+
 ## Navigation and Layout
 
 ### Navigation Header Requirement
@@ -61,6 +79,35 @@
 - Use lazy loading for large components
 - Optimize re-renders
 - Implement proper cleanup in useEffect hooks
+- Lazy-load image assets and scan results
+- Use Lighthouse to optimize bundle size
+- Add skeleton loaders for scans and card lists
+
+## Testing Requirements
+
+### Unit Testing
+- **ALL components MUST have unit tests**
+- Test component rendering and interactions
+- Mock API calls and external dependencies
+- Test error states and loading states
+- Use React Testing Library for component tests
+
+### Integration Testing
+- Test complete user flows (scan + feedback)
+- Test API integration points
+- Test authentication flows
+- Test form submissions and validations
+
+### E2E Testing
+- Use Playwright for end-to-end tests
+- Test critical user journeys
+- Test cross-browser compatibility
+- Test mobile responsiveness
+
+### CI/CD Testing
+- GitHub Actions: run react-scripts test
+- Include E2E Playwright suite
+- Test build process and deployment
 
 ## Debugging and Testing
 
@@ -117,4 +164,25 @@
 - Simplified automated testing
 - Better accessibility for screen readers
 - Consistent element identification across the application
-- Improved developer experience when troubleshooting 
+- Improved developer experience when troubleshooting
+
+## Security Guidelines
+- Sanitize inputs (forms, query params)
+- Obfuscate tokens in localStorage/sessionStorage
+- Add basic 2FA stub UI (Google Authenticator path)
+- Implement proper CORS handling
+- Add CSP headers
+
+## Mobile PWA Requirements
+- Audit for display: standalone, full caching
+- Service Worker: background sync + fallback page
+- Add pull-to-refresh and swipe nav
+- Optimize for mobile performance
+- Test offline functionality
+
+## Scan Flow UX Requirements
+- Add live feedback: bounding box + confidence meter
+- Offline queue: store scans locally and retry when online
+- Batch scan carousel UI
+- Animated scan reveal (rarity sparks, badge slide-ins)
+- XP system tracker and celebration overlays 

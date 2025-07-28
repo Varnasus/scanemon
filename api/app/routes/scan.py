@@ -8,7 +8,8 @@ from fastapi.responses import JSONResponse
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 
-from ml.predict import predict_card
+from app.services.ml_service import ml_service, CardPrediction
+from app.services.card_detector import card_detector
 from app.core.scan_logger import scan_logger
 from app.core.database import get_db
 from app.services.scan_analytics_service import ScanAnalyticsService
@@ -52,11 +53,55 @@ async def fallback_scan(file: UploadFile) -> Dict[str, Any]:
 
 @resilience_service.retry_with_backoff(max_retries=2, base_delay=1.0, max_delay=5.0)
 async def perform_scan_with_retry(file: UploadFile) -> Dict[str, Any]:
-    """Perform scan with retry logic"""
+    """Perform scan with retry logic using new ML service"""
     try:
-        card_data = predict_card(file)
-        card_data["mode"] = "online"
+        # Read file bytes
+        file_bytes = await file.read()
+        
+        # Detect cards in image (optional)
+        card_detections = card_detector.detect_cards(file_bytes)
+        
+        # If cards detected, use the first one, otherwise use full image
+        if card_detections:
+            # Crop to the highest confidence detection
+            best_detection = max(card_detections, key=lambda x: x.confidence)
+            cropped_bytes = card_detector.crop_card(file_bytes, best_detection.bounding_box)
+            image_bytes = cropped_bytes
+        else:
+            image_bytes = file_bytes
+        
+        # Identify card using ML service
+        prediction = await ml_service.identify_card(image_bytes)
+        
+        # Convert to legacy format for compatibility
+        card_data = {
+            "name": prediction.name,
+            "set": prediction.set,
+            "number": prediction.number,
+            "rarity": prediction.rarity,
+            "type": "Unknown",  # Will be added later
+            "hp": "Unknown",    # Will be added later
+            "confidence": prediction.confidence,
+            "model_version": prediction.model_version,
+            "processing_time_ms": prediction.processing_time_ms,
+            "filename": file.filename if file.filename else "unknown.jpg",
+            "file_size": len(file_bytes),
+            "file_type": file.content_type.split('/')[-1] if file.content_type else None,
+            "scan_method": "image",
+            "mode": "online",
+            "detections": [
+                {
+                    "bounding_box": detection.bounding_box,
+                    "confidence": detection.confidence,
+                    "card_type": detection.card_type
+                }
+                for detection in card_detections
+            ] if card_detections else [],
+            "metadata": prediction.metadata
+        }
+        
         return card_data
+        
     except Exception as e:
         # Log the error for debugging
         import logging

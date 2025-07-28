@@ -1,10 +1,40 @@
 # Backend Development Rules
 
+## Project Phases
+### Phase 1: Core Functionality & Stability
+- ML System Upgrade (Critical Path)
+- PostgreSQL Migration
+- Comprehensive Testing Framework
+- Security Hardening
+- Performance Optimization
+
+### Phase 2: Product Enhancement
+- Enhanced Collection System
+- Advanced AI Features
+- Social Features
+- Marketplace & Price Integration
+
+### Phase 3: Monetization & Growth
+- Freemium Limits
+- Stripe Integration
+- Monitoring & Analytics
+- ML Training Loop
+
 ## Core Technologies
 - Use FastAPI
 - Follow async conventions throughout
 - Use Pydantic for request/response validation
 - Use SQLAlchemy for database operations
+- PostgreSQL (migrating from SQLite)
+- Redis for caching
+
+## ML System Requirements
+- Implement identify_card(image: bytes) -> CardPrediction
+- Support OpenAI CLIP or pre-trained models
+- Image preprocessing: resize to 224x224, RGB conversion, normalization
+- Return: card name, set, number, rarity, confidence
+- Add model version tracking and dynamic switching
+- Support local/custom model loading
 
 ## API Structure
 - Organize endpoints under /api/ prefix
@@ -22,8 +52,11 @@ api/
 │   ├── schemas/         # Pydantic schemas
 │   ├── routes/          # API endpoints
 │   ├── services/        # Business logic
+│   │   ├── ml/         # ML services (new)
+│   │   └── auth/       # Auth services
 │   ├── utils/           # Utilities
 │   └── core/            # Config, database, logging
+├── ml/                  # ML models and utilities
 ├── requirements.txt
 └── main.py
 ```
@@ -45,10 +78,11 @@ api/
 
 ## Database
 - Use async database operations
-- Implement proper migrations
+- Implement proper migrations with Alembic
 - Use connection pooling
 - Add database indexes for performance
 - Implement soft deletes where appropriate
+- Support PostgreSQL migration from SQLite
 
 ## Logging & Monitoring
 - Log all activity using the configured logger
@@ -56,24 +90,37 @@ api/
 - Log performance metrics
 - Monitor API response times
 - Track error rates and types
+- Integrate Sentry for error tracking
 
 ## Security
-- Validate all inputs
-- Implement rate limiting
+- Validate all inputs with Pydantic
+- Implement rate limiting middleware
 - Use proper authentication/authorization
 - Sanitize user data
 - Use environment variables for secrets
+- Add HTTP security headers (CORS, CSP)
+- Enable audit logging
 
-## Code Quality
-- Comment key business logic for LLM clarity
-- Use type hints throughout
-- Follow PEP 8 style guidelines
-- Write unit tests for services
-- Use dependency injection
+## Testing Requirements
+- Unit tests for all services
+- Integration tests for API endpoints
+- Mock tests for ML predictions
+- Database connection tests
+- Performance tests for scan operations
 
 ## Performance
 - Use async/await for I/O operations
-- Implement caching where appropriate
+- Implement Redis caching for expensive queries
 - Optimize database queries
 - Use background tasks for heavy operations
-- Monitor memory usage 
+- Monitor memory usage
+- Add cache-control headers
+- Consider CDN for media files
+
+## ML System Guidelines
+- Preprocess images: resize to 224x224, RGB conversion, normalization
+- Support multiple model backends (CLIP, custom models)
+- Implement confidence scoring
+- Add model versioning and A/B testing capability
+- Cache model predictions where appropriate
+- Handle model loading errors gracefully 
