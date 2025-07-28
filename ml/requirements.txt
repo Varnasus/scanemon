@@ -1,0 +1,65 @@
+# Core ML libraries
+torch==2.1.1
+torchvision==0.16.1
+torchaudio==2.1.1
+transformers==4.35.2
+datasets==2.14.5
+
+# Computer Vision
+opencv-python==4.8.1.78
+Pillow==10.1.0
+imageio==2.31.5
+scikit-image==0.21.0
+
+# OCR
+pytesseract==0.3.10
+easyocr==1.7.0
+
+# Data processing
+numpy==1.24.3
+pandas==2.1.3
+scipy==1.11.4
+scikit-learn==1.3.2
+
+# Deep Learning frameworks
+tensorflow==2.14.0
+keras==2.14.0
+
+# Model serving
+onnx==1.15.0
+onnxruntime==1.16.3
+
+# Utilities
+tqdm==4.66.1
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+
+# Jupyter for development
+jupyter==1.0.0
+ipykernel==6.26.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Code quality
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+
+# API integration
+requests==2.31.0
+aiohttp==3.9.1
+
+# Image processing utilities
+imgaug==0.4.0
+albumentations==1.3.1
+
+# Model optimization
+onnxoptimizer==0.3.13
+tensorrt==8.6.1
+
+# Monitoring and logging
+wandb==0.16.1
+mlflow==2.8.1 

@@ -1,0 +1,123 @@
+# Design System Rules
+
+## Brand Identity
+- Maintain a fun, nostalgic, tech-forward feel
+- Evoke Pokémon TCG vibes without direct IP violation
+- Balance playful elements with modern functionality
+- Create emotional connection through familiar card collecting experience
+
+## Color Palette
+### Primary Colors
+- **Electric Blue**: #00D4FF (primary actions, highlights)
+- **Neon Purple**: #8B5CF6 (secondary actions, accents)
+- **Dark Gray**: #1F2937 (text, backgrounds)
+
+### Supporting Colors
+- **Success Green**: #10B981 (positive actions, rare pulls)
+- **Warning Orange**: #F59E0B (warnings, attention)
+- **Error Red**: #EF4444 (errors, destructive actions)
+- **Neutral Gray**: #6B7280 (disabled states, borders)
+
+## Typography
+### Headers
+- Use rounded, friendly header fonts
+- Font weights: 600-700 for hierarchy
+- Sizes: 2xl-4xl for main headers, xl for section headers
+
+### Body Text
+- Modern sans-serif for readability
+- Font weight: 400-500 for body text
+- Sizes: sm-base for body, xs for captions
+- Line height: 1.5-1.6 for optimal reading
+
+## Iconography
+- Use rounded, friendly icon style
+- Evoke TCG and gaming aesthetics
+- Maintain consistency across all icons
+- Use subtle shadows and highlights
+- Avoid direct Pokémon IP references
+
+## Animations & Interactions
+### Celebratory Animations
+- Sparkles and particle effects for rare pulls
+- Color pulses and glows for special cards
+- Smooth transitions between states
+- Micro-interactions for feedback
+
+### General Guidelines
+- Keep animations light and rewarding
+- Use easing functions for natural movement
+- Duration: 200-400ms for most interactions
+- Avoid overwhelming or distracting effects
+
+## Card & Binder Design
+### Card Display
+- Realistic card proportions (2.5:3.5 ratio)
+- Subtle shadows and depth
+- Hover effects for interactivity
+- Clear visual hierarchy for card info
+
+### Binder View
+- Tactile feel with flip animations
+- Tap interactions for card details
+- Shine effects on foil cards
+- Grid layout with proper spacing
+
+## Gamification Elements
+### Visual Indicators
+- Level meters with progress bars
+- Streak counters with visual feedback
+- Badge system with achievement icons
+- XP counters with animated increments
+
+### Guidelines
+- Make gamification visible but not intrusive
+- Use consistent visual language
+- Provide clear feedback for actions
+- Balance fun with functionality
+
+## Layout & Spacing
+### Mobile-First Design
+- Single column layout on mobile
+- Proper touch targets (44px minimum)
+- Adequate spacing between elements
+- Thumb-friendly navigation
+
+### Responsive Design
+- Fluid typography scaling
+- Flexible grid systems
+- Breakpoint considerations
+- Consistent spacing scale
+
+## Accessibility
+- Maintain 4.5:1 contrast ratio minimum
+- Support keyboard navigation
+- Provide alt text for images
+- Use semantic HTML elements
+- Test with screen readers
+
+## PWA Considerations
+- Design for offline functionality
+- Optimize for app-like experience
+- Use native-like interactions
+- Consider installation prompts
+- Design for various screen sizes
+
+## Component Guidelines
+### Buttons
+- Clear visual hierarchy
+- Consistent padding and sizing
+- Hover and active states
+- Loading states for async actions
+
+### Forms
+- Clear labels and validation
+- Helpful error messages
+- Progressive disclosure
+- Auto-save where appropriate
+
+### Navigation
+- Intuitive information architecture
+- Clear current state indicators
+- Consistent navigation patterns
+- Breadcrumbs for complex flows 

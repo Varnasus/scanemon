@@ -1,0 +1,79 @@
+# Backend Development Rules
+
+## Core Technologies
+- Use FastAPI
+- Follow async conventions throughout
+- Use Pydantic for request/response validation
+- Use SQLAlchemy for database operations
+
+## API Structure
+- Organize endpoints under /api/ prefix
+- Place database models in models/
+- Place Pydantic schemas in schemas/
+- Place route handlers in routes/
+- Place business logic in services/
+- Place utilities in utils/
+
+## Code Organization
+```
+api/
+├── app/
+│   ├── models/          # SQLAlchemy models
+│   ├── schemas/         # Pydantic schemas
+│   ├── routes/          # API endpoints
+│   ├── services/        # Business logic
+│   ├── utils/           # Utilities
+│   └── core/            # Config, database, logging
+├── requirements.txt
+└── main.py
+```
+
+## API Design
+- Use RESTful conventions
+- Return consistent JSON responses
+- Include proper error handling
+- Use HTTP status codes correctly
+- Implement request/response validation
+- Add comprehensive API documentation
+
+## Error Handling
+- Use proper exception classes
+- Return structured error responses
+- Log all errors with context
+- Include error codes for frontend handling
+- Don't expose sensitive information in errors
+
+## Database
+- Use async database operations
+- Implement proper migrations
+- Use connection pooling
+- Add database indexes for performance
+- Implement soft deletes where appropriate
+
+## Logging & Monitoring
+- Log all activity using the configured logger
+- Include request IDs for tracing
+- Log performance metrics
+- Monitor API response times
+- Track error rates and types
+
+## Security
+- Validate all inputs
+- Implement rate limiting
+- Use proper authentication/authorization
+- Sanitize user data
+- Use environment variables for secrets
+
+## Code Quality
+- Comment key business logic for LLM clarity
+- Use type hints throughout
+- Follow PEP 8 style guidelines
+- Write unit tests for services
+- Use dependency injection
+
+## Performance
+- Use async/await for I/O operations
+- Implement caching where appropriate
+- Optimize database queries
+- Use background tasks for heavy operations
+- Monitor memory usage 

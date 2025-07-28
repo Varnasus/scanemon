@@ -1,0 +1,40 @@
+{
+  "name": "scanemon",
+  "version": "1.0.0",
+  "description": "AI-powered Pokémon card scanner and collector application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd api && python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload",
+    "dev:frontend": "cd app && npm start",
+    "install:all": "npm install && cd app && npm install && cd ../api && pip install -r requirements.txt",
+    "build": "cd app && npm run build",
+    "test": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
+    "test:backend": "cd api && python -m pytest",
+    "test:frontend": "cd app && npm test",
+    "clean": "npm run clean:node && npm run clean:python",
+    "clean:node": "cd app && rm -rf node_modules package-lock.json",
+    "clean:python": "cd api && find . -type d -name __pycache__ -delete && find . -type f -name '*.pyc' -delete"
+  },
+  "keywords": [
+    "pokemon",
+    "card-scanner",
+    "ai",
+    "react",
+    "fastapi",
+    "typescript"
+  ],
+  "author": "Scanémon Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/scanemon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/scanemon/issues"
+  },
+  "homepage": "https://github.com/your-username/scanemon#readme"
+}

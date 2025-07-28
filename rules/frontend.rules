@@ -1,0 +1,120 @@
+# Frontend Development Rules
+
+## Navigation and Layout
+
+### Navigation Header Requirement
+- **ALL interfaces must include the main navigation header at the top**
+- The navigation header should be consistent across all pages
+- Use the `Layout` component from `components/Layout/Layout.tsx` to wrap all page components
+- The Layout component provides:
+  - Header with logo and user profile
+  - Sidebar navigation with user stats
+  - Theme toggle functionality
+  - Consistent styling and spacing
+
+### Implementation Guidelines
+1. **Always wrap page components with Layout**: 
+   ```tsx
+   // In App.tsx
+   <Layout>
+     <Routes>
+       <Route path="/page" element={<PageComponent />} />
+     </Routes>
+   </Layout>
+   ```
+
+2. **Page components should not include their own navigation elements**
+3. **Page components should focus on content only**
+4. **Use the existing navigation structure from Navigation.tsx**
+
+### Benefits
+- Consistent user experience across all pages
+- Centralized navigation management
+- Proper user authentication display
+- Theme consistency
+- Responsive design handling
+
+## Component Structure
+
+### Page Components
+- Should be functional components
+- Use TypeScript interfaces for props
+- Implement proper error handling
+- Include loading states where appropriate
+- Be responsive and accessible
+
+### Styling
+- Use Tailwind CSS classes
+- Follow the established design system
+- Use the holo-effect for card components
+- Maintain consistent color schemes
+- Implement proper hover and focus states
+
+### State Management
+- Use React hooks for local state
+- Implement proper data fetching patterns
+- Handle loading and error states gracefully
+- Use context for global state when needed
+
+### Performance
+- Implement proper memoization where needed
+- Use lazy loading for large components
+- Optimize re-renders
+- Implement proper cleanup in useEffect hooks
+
+## Debugging and Testing
+
+### Data Test ID Requirements
+- **ALL interactive elements MUST have unique `data-testid` attributes**
+- **ALL form elements (inputs, buttons, selects) MUST have descriptive test IDs**
+- **ALL navigation elements MUST have identifiable test IDs**
+- **ALL major page sections MUST have container test IDs**
+
+### Test ID Naming Convention
+- Use descriptive, hierarchical naming: `component-type-purpose`
+- Examples:
+  - `button-primary-submit`
+  - `input-email-field`
+  - `nav-link-dashboard`
+  - `modal-close-button`
+  - `user-profile-avatar`
+
+### Implementation Guidelines
+1. **Add `testId` prop to all component interfaces**:
+   ```tsx
+   interface ButtonProps {
+     children: React.ReactNode;
+     onClick?: () => void;
+     testId?: string; // Always include this
+   }
+   ```
+
+2. **Generate fallback test IDs when not provided**:
+   ```tsx
+   data-testid={testId || `button-${variant}-${children?.toString().toLowerCase().replace(/\s+/g, '-')}`}
+   ```
+
+3. **Use consistent patterns for similar elements**:
+   - Buttons: `button-{variant}-{action}`
+   - Inputs: `input-{type}-{field-name}`
+   - Links: `link-{destination}`
+   - Cards: `card-{type}`
+   - Modals: `modal-{purpose}`
+
+4. **Include test IDs for containers and sections**:
+   ```tsx
+   <div data-testid="login-form-container">
+     <form data-testid="login-form">
+       <div data-testid="email-field-container">
+         <input data-testid="email-input" />
+       </div>
+     </form>
+   </div>
+   ```
+
+### Benefits
+- Easier debugging in browser dev tools
+- Simplified automated testing
+- Better accessibility for screen readers
+- Consistent element identification across the application
+- Improved developer experience when troubleshooting 

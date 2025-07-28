@@ -1,0 +1,86 @@
+# Machine Learning Development Rules
+
+## Project Structure
+```
+ml/
+├── models/              # Trained model files
+├── training/            # Training scripts and data
+├── inference/           # Inference scripts
+├── data/                # Training and validation data
+├── utils/               # ML utilities
+├── predict.py           # Main prediction endpoint
+├── model.py             # Model architecture definitions
+└── requirements.txt
+```
+
+## Model Architecture
+- Use Tesseract for OCR text extraction
+- Use fine-tuned CLIP or CNN model for card classification
+- Implement ensemble approach for better accuracy
+- Use transfer learning from pre-trained models
+- Keep models lightweight for mobile deployment
+
+## Data Processing
+- Preprocess images consistently (resize, normalize, augment)
+- Implement data validation and cleaning
+- Use proper train/validation/test splits
+- Handle edge cases (blurry images, poor lighting)
+- Support multiple image formats (JPEG, PNG, WebP)
+
+## Inference Pipeline
+- All model inference should return structured metadata:
+  ```python
+  {
+    "name": str,
+    "set": str,
+    "rarity": str,
+    "confidence": float,
+    "ocr_text": str,
+    "bbox": List[float]
+  }
+  ```
+- Provide fallback if prediction confidence is below threshold (e.g., 0.7)
+- Suggest manual entry for low-confidence predictions
+- Cache predictions to avoid redundant processing
+
+## API Integration
+- Endpoint accepts base64 image or file path
+- Implement proper error handling for malformed images
+- Add request validation and size limits
+- Use async processing for better performance
+- Return consistent response format
+
+## Model Development
+- Start with placeholder model until training data is finalized
+- Use version control for model artifacts
+- Implement model versioning and rollback
+- Track model performance metrics
+- Use MLflow or similar for experiment tracking
+
+## Training Guidelines
+- Collect diverse training data (different lighting, angles, sets)
+- Implement data augmentation techniques
+- Use cross-validation for model selection
+- Monitor for overfitting
+- Regularize models appropriately
+
+## Performance Optimization
+- Optimize for inference speed
+- Use model quantization where possible
+- Implement batch processing for multiple images
+- Cache frequently requested predictions
+- Monitor memory usage during inference
+
+## Quality Assurance
+- Implement unit tests for model components
+- Test with edge cases and adversarial examples
+- Validate predictions against known card database
+- Monitor model drift over time
+- Implement A/B testing for model updates
+
+## Deployment
+- Package models for easy deployment
+- Use Docker containers for consistency
+- Implement health checks for ML services
+- Monitor model performance in production
+- Set up automated retraining pipelines 
