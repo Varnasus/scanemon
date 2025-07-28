@@ -15,7 +15,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.routes import auth, cards, scan, collection, analytics, moderation
+from app.routes import auth, cards, scan, collection, analytics, moderation, monitoring
 from app.core.logging import setup_logging
 
 # Import models to ensure they are registered with SQLAlchemy
@@ -81,6 +81,7 @@ def create_app() -> FastAPI:
     app.include_router(collection.router, prefix="/api/v1/collection", tags=["Collection"])
     app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
     app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
+    app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=["Monitoring"])
     
     return app
 
@@ -98,11 +99,12 @@ async def root() -> Dict[str, Any]:
         "docs": "/docs" if settings.ENABLE_SWAGGER else "disabled",
         "endpoints": {
             "auth": "/api/v1/auth",
-            "users": "/api/v1/users", 
             "cards": "/api/v1/cards",
             "scan": "/api/v1/scan",
+            "collection": "/api/v1/collection",
             "analytics": "/api/v1/analytics",
-            "moderation": "/api/v1/moderation"
+            "moderation": "/api/v1/moderation",
+            "monitoring": "/api/v1/monitoring"
         }
     }
 
@@ -112,28 +114,26 @@ async def health_check() -> Dict[str, Any]:
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "timestamp": "2024-01-01T00:00:00Z",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "timestamp": "2024-01-01T00:00:00Z"
     }
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc: HTTPException):
-    """Global HTTP exception handler"""
-    logger.error(f"HTTP {exc.status_code}: {exc.detail}")
+    """Handle HTTP exceptions"""
     return JSONResponse(
         status_code=exc.status_code,
-        content={"error": exc.detail, "status_code": exc.status_code}
+        content={"detail": exc.detail}
     )
 
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc: Exception):
-    """Global exception handler"""
-    logger.error(f"Unhandled exception: {exc}")
+    """Handle general exceptions"""
     return JSONResponse(
         status_code=500,
-        content={"error": "Internal server error", "status_code": 500}
+        content={"detail": "Internal server error"}
     )
 
 

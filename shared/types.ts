@@ -120,6 +120,24 @@ export interface ScanResult {
   filename: string;
   log_id: string;
   image_url?: string;
+  processing_time_ms?: number;
+  analytics_id?: number;
+  error_type?: string;
+  error_message?: string;
+  retry_count?: number;
+  suggest_retry?: boolean;
+  retry_delay_seconds?: number;
+  mode?: 'online' | 'offline' | 'error';
+  system_status?: {
+    connection_status: string;
+    offline_queue_size: number;
+    suggest_offline_mode: boolean;
+  };
+  user_guidance?: {
+    message: string;
+    action: string;
+    priority: 'info' | 'warning' | 'success';
+  };
 }
 
 // Collection Types
@@ -305,34 +323,4 @@ export interface UserSettings {
   scan: ScanSettings;
 }
 
-// Export all types
-export type {
-  User,
-  UserProfile,
-  UserStats,
-  Card,
-  CardAttack,
-  CardAbility,
-  CardWeakness,
-  CardResistance,
-  CardCondition,
-  CardScanResult,
-  ScanResult,
-  Collection,
-  CollectionCard,
-  Achievement,
-  AchievementCategory,
-  ScanSession,
-  ScanSettings,
-  ApiResponse,
-  PaginatedResponse,
-  ApiError,
-  CardFilters,
-  SortOption,
-  Toast,
-  Modal,
-  LoadingState,
-  Theme,
-  Notification,
-  UserSettings,
-}; 
+ 

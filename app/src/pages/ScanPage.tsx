@@ -1,25 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { componentStyles } from '../styles/designSystem';
+import toast from 'react-hot-toast';
+import { ScanResult } from '../../../shared/types';
 
-interface ScanResult {
-  name: string;
-  set: string;
-  rarity: string;
-  type: string;
-  hp: string;
-  confidence: number;
-  timestamp: string;
-  model_version: string;
-  filename: string;
-  log_id: string;
-  analytics_id?: number;
-  image_url?: string;
-  error_type?: string;
-  error_message?: string;
-  retry_count?: number;
-  suggest_retry?: boolean;
-  retry_delay_seconds?: number;
+interface PageState {
+  loading: boolean;
+  partial: boolean;
+  complete: boolean;
+  error: boolean;
 }
 
 const ScanPage: React.FC = () => {
@@ -34,7 +24,33 @@ const ScanPage: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState<string>('incorrect_identification');
   const [reportDescription, setReportDescription] = useState<string>('');
+  const [pageState, setPageState] = useState<PageState>({
+    loading: false,
+    partial: false,
+    complete: false,
+    error: false
+  });
+  const [systemStatus, setSystemStatus] = useState<any>(null);
+  
   const navigate = useNavigate();
+  const { getAuthStatus } = useAuth();
+
+  // Check system status on component mount
+  useEffect(() => {
+    checkSystemStatus();
+  }, []);
+
+  const checkSystemStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/scan/system-status');
+      if (response.ok) {
+        const status = await response.json();
+        setSystemStatus(status);
+      }
+    } catch (error) {
+      console.error('Failed to check system status:', error);
+    }
+  };
 
   // Funny messages for different confidence levels
   const confidenceMessages = {
@@ -75,31 +91,67 @@ const ScanPage: React.FC = () => {
     }
   };
 
+  const retryWithBackoff = async (operation: () => Promise<any>, maxRetries = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (attempt === maxRetries) throw error;
+        
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        toast(`Retrying... (${attempt}/${maxRetries})`);
+      }
+    }
+  };
+
   const handleScan = async (retryAttempt: number = 0) => {
     if (!selectedFile) return;
 
     setIsScanning(true);
     setError(null);
     setRetryCount(retryAttempt);
+    setPageState({ loading: true, partial: false, complete: false, error: false });
     
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch(`http://localhost:8000/api/v1/scan/?retry_count=${retryAttempt}`, {
-        method: 'POST',
-        body: formData,
+      const result = await retryWithBackoff(async () => {
+        const response = await fetch(`http://localhost:8000/api/v1/scan/?retry_count=${retryAttempt}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
       setScanResult(result);
-    } catch (error) {
+      setPageState({ loading: false, partial: false, complete: true, error: false });
+      
+      // Show appropriate message based on result
+      if (result.user_guidance) {
+        const { message, priority } = result.user_guidance;
+        if (priority === 'success') {
+          toast.success(message);
+        } else if (priority === 'warning') {
+          toast(message, { icon: '⚠️' });
+        } else {
+          toast(message, { icon: 'ℹ️' });
+        }
+      }
+      
+    } catch (error: any) {
       console.error('Scan error:', error);
-      setError('Failed to scan card. Please try again.');
+      const errorMessage = error.message || 'Failed to scan card. Please try again.';
+      setError(errorMessage);
+      setPageState({ loading: false, partial: false, complete: false, error: true });
+      toast.error(errorMessage);
     } finally {
       setIsScanning(false);
     }
@@ -111,6 +163,7 @@ const ScanPage: React.FC = () => {
     setScanResult(null);
     setError(null);
     setRetryCount(0);
+    setPageState({ loading: false, partial: false, complete: false, error: false });
   };
 
   const handleRetryScan = async () => {
@@ -126,20 +179,26 @@ const ScanPage: React.FC = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch(`http://localhost:8000/api/v1/scan/?retry_count=${newRetryCount}`, {
-        method: 'POST',
-        body: formData,
+      const result = await retryWithBackoff(async () => {
+        const response = await fetch(`http://localhost:8000/api/v1/scan/?retry_count=${newRetryCount}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
       setScanResult(result);
-    } catch (error) {
+      toast.success('Retry completed!');
+    } catch (error: any) {
       console.error('Retry scan error:', error);
-      setError('Retry failed. Please try a different image.');
+      const errorMessage = 'Retry failed. Please try a different image.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsRetrying(false);
     }
@@ -162,7 +221,7 @@ const ScanPage: React.FC = () => {
       });
 
       if (response.ok) {
-        alert('Thank you for your feedback! We\'ll review this scan.');
+        toast.success('Thank you for your feedback! We\'ll review this scan.');
         setShowReportModal(false);
         setReportReason('incorrect_identification');
         setReportDescription('');
@@ -171,7 +230,7 @@ const ScanPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Report error:', error);
-      alert('Failed to submit report. Please try again.');
+      toast.error('Failed to submit report. Please try again.');
     }
   };
 
@@ -192,11 +251,13 @@ const ScanPage: React.FC = () => {
 
       if (response.ok) {
         console.log('Feedback submitted successfully');
+        toast.success('Feedback submitted!');
       } else {
         throw new Error('Failed to submit feedback');
       }
     } catch (error) {
       console.error('Feedback error:', error);
+      toast.error('Failed to submit feedback.');
     }
   };
 
@@ -227,317 +288,394 @@ const ScanPage: React.FC = () => {
       });
 
       if (response.ok) {
-        alert('Card added to collection successfully!');
+        toast.success('Card added to collection successfully!');
         navigate('/collection');
       } else {
         throw new Error('Failed to add card to collection');
       }
     } catch (error) {
       console.error('Add to collection error:', error);
-      alert('Failed to add card to collection. Please try again.');
+      toast.error('Failed to add card to collection. Please try again.');
     } finally {
       setIsAddingToCollection(false);
     }
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'text-green-500';
-    if (confidence >= 0.6) return 'text-yellow-500';
-    return 'text-red-500';
+    if (confidence >= 0.8) return 'text-green-600';
+    if (confidence >= 0.6) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   const getConfidenceText = (confidence: number) => {
-    if (confidence >= 0.9) return 'Excellent';
-    if (confidence >= 0.8) return 'Very Good';
-    if (confidence >= 0.7) return 'Good';
-    if (confidence >= 0.5) return 'Fair';
-    return 'Poor';
+    if (confidence >= 0.8) return 'High';
+    if (confidence >= 0.6) return 'Medium';
+    return 'Low';
   };
 
   const isLowConfidence = (confidence: number) => confidence < 0.7;
 
+  const getErrorMessage = (error: any) => {
+    if (error?.code === 'NETWORK_ERROR') {
+      return 'Connection lost. Your data is saved locally and will sync when you\'re back online.';
+    } else if (error?.code === 'AUTH_FAILED') {
+      return 'Sign-in issue. You can continue using the app offline.';
+    } else if (error?.code === 'SCAN_FAILED') {
+      return 'Scan failed. Try adjusting lighting or taking a clearer photo.';
+    } else {
+      return 'Something went wrong. Your progress is saved.';
+    }
+  };
+
+  // Connection status indicator
+  const ConnectionStatusIndicator = () => {
+    const authStatus = getAuthStatus();
+    const isOnline = authStatus.status === 'online';
+    
+    return (
+      <div className={`fixed top-4 right-4 z-50 px-3 py-1 rounded-full text-xs font-medium ${
+        isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+      }`}>
+        {isOnline ? '🟢 Online' : '🔴 Offline'}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 to-cyan-900 text-white font-sans" data-testid="scan-page">
-      <div className="container mx-auto px-6 py-8" data-testid="scan-container">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <ConnectionStatusIndicator />
+      
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8" data-testid="scan-header">
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-4" data-testid="scan-title">
-              Scan Your Card 🎴
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Scan Pokémon Cards 📸
             </h1>
-            <p className="text-lg text-gray-300" data-testid="scan-subtitle">
-              Upload a photo of your Pokémon card and let AI identify it instantly
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Upload a photo of your Pokémon card to identify it
             </p>
           </div>
 
-          {/* Error Display */}
-          {error && (
-            <div className="mb-6 bg-red-500/20 border border-red-500/30 rounded-xl p-4" data-testid="scan-error">
-              <div className="flex items-center">
-                <span className="text-red-400 mr-2">❌</span>
-                <p className="text-red-200">{error}</p>
+          {/* System Status */}
+          {systemStatus && (
+            <div className="mb-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-medium">System Status</h3>
+                  <p className="text-white/70 text-sm">
+                    Connection: {systemStatus.connection_status} | 
+                    Queue: {systemStatus.offline_queue_size} items
+                  </p>
+                </div>
+                <div className={`w-3 h-3 rounded-full ${
+                  systemStatus.connection_status === 'online' ? 'bg-green-400' : 'bg-red-400'
+                }`}></div>
               </div>
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 gap-8" data-testid="scan-content">
-            {/* Upload Section */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl shadow-lg p-6" data-testid="upload-section">
-              <h2 className="text-2xl font-semibold text-white mb-4" data-testid="upload-title">
-                Upload Image
-              </h2>
-              
-              <div className="space-y-4" data-testid="upload-content">
-                <div className="border-2 border-dashed border-white/30 rounded-xl p-6 text-center hover:border-blue-400 transition-all duration-150" data-testid="upload-area">
-                  <input
-                    type="file"
-                    accept="image/*,.webp,.jpg,.jpeg,.png,.gif"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="file-upload"
-                    data-testid="file-input"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer block"
-                    data-testid="file-upload-label"
-                  >
-                    <div className="text-4xl mb-4" data-testid="upload-icon">📷</div>
-                    <p className="text-gray-300 mb-2" data-testid="upload-text">
-                      Click to select an image
-                    </p>
-                    <p className="text-sm text-gray-400" data-testid="upload-formats">
-                      Supports JPG, PNG, WebP, GIF
-                    </p>
-                  </label>
-                </div>
-
-                {previewUrl && (
-                  <div className="mt-4" data-testid="image-preview">
-                    <img
-                      src={previewUrl}
-                      alt="Preview"
-                      className="w-full h-64 object-cover rounded-xl"
-                      data-testid="preview-image"
-                    />
+          {/* File Upload Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+            <div className="text-center">
+              <div className="mb-4">
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                    <div className="text-gray-600 dark:text-gray-400">
+                      <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p className="text-lg font-medium">Click to upload or drag and drop</p>
+                      <p className="text-sm">PNG, JPG, WEBP up to 10MB</p>
+                    </div>
                   </div>
-                )}
+                </label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
 
-                <div className="flex space-x-2" data-testid="upload-actions">
+              {selectedFile && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Selected: {selectedFile.name}
+                  </p>
                   <button
                     onClick={() => handleScan()}
-                    disabled={!selectedFile || isScanning}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-150 hover:scale-105 flex items-center justify-center"
-                    data-testid="scan-button"
+                    disabled={isScanning}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-150 hover:scale-105"
                   >
-                    {isScanning ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" data-testid="scan-spinner"></div>
-                        Scanning...
-                      </>
-                    ) : (
-                      '🔍 Scan Card'
-                    )}
+                    {isScanning ? 'Scanning...' : 'Scan Card'}
                   </button>
-                  
-                  {scanResult && (
-                    <button
-                      onClick={handleRetry}
-                      className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-150 hover:scale-105"
-                      title="Try a different image"
-                      data-testid="retry-button"
-                    >
-                      🔄
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Results Section */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl shadow-lg p-6" data-testid="results-section">
-              <h2 className="text-2xl font-semibold text-white mb-4" data-testid="results-title">
-                Scan Results
-              </h2>
-              
-              {scanResult ? (
-                <div className="space-y-4" data-testid="scan-results">
-                  {/* AI Message */}
-                  <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4" data-testid="ai-message">
-                    <p className="text-blue-200 text-sm">
-                      {getRandomMessage(scanResult.confidence)}
-                    </p>
-                  </div>
-
-                  {/* Card Details */}
-                  <div className="bg-white/5 rounded-xl p-4" data-testid="card-details">
-                    <div className="grid grid-cols-2 gap-4" data-testid="card-details-grid">
-                      <div data-testid="card-name">
-                        <p className="text-sm text-gray-400">Name</p>
-                        <p className="font-semibold text-white">{scanResult.name}</p>
-                      </div>
-                      <div data-testid="card-set">
-                        <p className="text-sm text-gray-400">Set</p>
-                        <p className="font-semibold text-white">{scanResult.set || 'Unknown'}</p>
-                      </div>
-                      <div data-testid="card-type">
-                        <p className="text-sm text-gray-400">Type</p>
-                        <p className="font-semibold text-white">{scanResult.type || 'Unknown'}</p>
-                      </div>
-                      <div data-testid="card-hp">
-                        <p className="text-sm text-gray-400">HP</p>
-                        <p className="font-semibold text-white">{scanResult.hp || 'Unknown'}</p>
-                      </div>
-                      <div data-testid="card-rarity">
-                        <p className="text-sm text-gray-400">Rarity</p>
-                        <p className="font-semibold text-white">{scanResult.rarity || 'Unknown'}</p>
-                      </div>
-                      <div data-testid="card-confidence">
-                        <p className="text-sm text-gray-400">Confidence</p>
-                        <p className={`font-semibold ${getConfidenceColor(scanResult.confidence)}`}>
-                          {Math.round(scanResult.confidence * 100)}% ({getConfidenceText(scanResult.confidence)})
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="space-y-3" data-testid="action-buttons">
-                    {/* Primary Actions */}
-                    <div className="flex space-x-2" data-testid="primary-actions">
-                      <button
-                        onClick={handleAddToCollection}
-                        disabled={isAddingToCollection}
-                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-150 hover:scale-105 flex items-center justify-center"
-                        data-testid="add-to-collection-button"
-                      >
-                        {isAddingToCollection ? (
-                          <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" data-testid="add-spinner"></div>
-                            Adding...
-                          </>
-                        ) : (
-                          '📚 Add to Collection'
-                        )}
-                      </button>
-                      
-                      <button
-                        onClick={() => setShowReportModal(true)}
-                        className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-150 hover:scale-105"
-                        title="Report an issue with this scan"
-                        data-testid="report-button"
-                      >
-                        ⚠️
-                      </button>
-                    </div>
-
-                    {/* Feedback Buttons */}
-                    <div className="flex space-x-2" data-testid="feedback-buttons">
-                      <button
-                        onClick={() => handleFeedback('correct')}
-                        className="flex-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 font-medium py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
-                        data-testid="feedback-correct-button"
-                      >
-                        👍 Correct
-                      </button>
-                      <button
-                        onClick={() => handleFeedback('incorrect')}
-                        className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-300 font-medium py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
-                        data-testid="feedback-incorrect-button"
-                      >
-                        👎 Incorrect
-                      </button>
-                    </div>
-
-                    {/* Retry for Low Confidence */}
-                    {isLowConfidence(scanResult.confidence) && (
-                      <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4" data-testid="low-confidence-warning">
-                        <p className="text-yellow-200 text-sm mb-3">
-                          ⚠️ Low confidence scan. Consider trying again with a clearer image.
-                        </p>
-                        <button
-                          onClick={handleRetryScan}
-                          disabled={isRetrying}
-                          className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
-                          data-testid="retry-scan-button"
-                        >
-                          {isRetrying ? 'Retrying...' : '🔄 Try Again'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8" data-testid="no-results">
-                  <div className="text-4xl mb-4">🎴</div>
-                  <p className="text-gray-400">
-                    Upload an image to see scan results here
-                  </p>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Report Modal */}
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" data-testid="report-modal-overlay">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 max-w-md w-full mx-4" data-testid="report-modal">
-            <h3 className="text-xl font-semibold text-white mb-4" data-testid="report-modal-title">Report Issue</h3>
-            
-            <div className="space-y-4" data-testid="report-form">
-              <div data-testid="report-reason-field">
-                <label className="block text-sm font-medium text-gray-300 mb-2" data-testid="report-reason-label">
-                  Reason
-                </label>
-                <select
-                  value={reportReason}
-                  onChange={(e) => setReportReason(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  data-testid="report-reason-select"
-                >
-                  <option value="incorrect_identification">Incorrect Identification</option>
-                  <option value="poor_quality">Poor Quality Scan</option>
-                  <option value="missing_info">Missing Information</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              
-              <div data-testid="report-description-field">
-                <label className="block text-sm font-medium text-gray-300 mb-2" data-testid="report-description-label">
-                  Description
-                </label>
-                <textarea
-                  value={reportDescription}
-                  onChange={(e) => setReportDescription(e.target.value)}
-                  rows={3}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Please describe the issue..."
-                  data-testid="report-description-textarea"
+          {/* Preview Section */}
+          {previewUrl && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Preview</h3>
+              <div className="flex justify-center">
+                <img
+                  src={previewUrl}
+                  alt="Card preview"
+                  className="max-w-md max-h-64 object-contain rounded-lg"
                 />
               </div>
-              
-              <div className="flex space-x-2" data-testid="report-actions">
+            </div>
+          )}
+
+          {/* Loading State */}
+          {pageState.loading && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Processing your card...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {pageState.error && error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-8">
+              <div className="flex items-center">
+                <span className="text-red-500 mr-2">❌</span>
+                <div>
+                  <p className="text-red-800 dark:text-red-200 font-medium">Scan Failed</p>
+                  <p className="text-red-600 dark:text-red-300 text-sm">{getErrorMessage(error)}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex space-x-2">
                 <button
-                  onClick={() => setShowReportModal(false)}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
-                  data-testid="report-cancel-button"
+                  onClick={handleRetry}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
                 >
-                  Cancel
+                  Try Again
                 </button>
                 <button
-                  onClick={handleReportIssue}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
-                  data-testid="report-submit-button"
+                  onClick={() => setError(null)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"
                 >
-                  Submit Report
+                  Dismiss
                 </button>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Results Section */}
+          {scanResult && !pageState.loading && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Scan Results</h3>
+                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  scanResult.mode === 'online' ? 'bg-green-100 text-green-800' : 
+                  scanResult.mode === 'offline' ? 'bg-yellow-100 text-yellow-800' : 
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {scanResult.mode === 'online' ? 'Online' : 
+                   scanResult.mode === 'offline' ? 'Offline' : 'Error'}
+                </div>
+              </div>
+
+              {/* User Guidance */}
+              {scanResult.user_guidance && (
+                <div className={`mb-4 p-4 rounded-lg ${
+                  scanResult.user_guidance.priority === 'success' ? 'bg-green-50 dark:bg-green-900/20' :
+                  scanResult.user_guidance.priority === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/20' :
+                  'bg-blue-50 dark:bg-blue-900/20'
+                }`}>
+                  <p className={`text-sm ${
+                    scanResult.user_guidance.priority === 'success' ? 'text-green-800 dark:text-green-200' :
+                    scanResult.user_guidance.priority === 'warning' ? 'text-yellow-800 dark:text-yellow-200' :
+                    'text-blue-800 dark:text-blue-200'
+                  }`}>
+                    {scanResult.user_guidance.message}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Card Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                      <span className="text-gray-900 dark:text-white font-medium">{scanResult.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Set:</span>
+                      <span className="text-gray-900 dark:text-white">{scanResult.set}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Rarity:</span>
+                      <span className="text-gray-900 dark:text-white">{scanResult.rarity}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-900 dark:text-white">{scanResult.type}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">HP:</span>
+                      <span className="text-gray-900 dark:text-white">{scanResult.hp}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Scan Details</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Confidence:</span>
+                      <span className={`font-medium ${getConfidenceColor(scanResult.confidence)}`}>
+                        {Math.round(scanResult.confidence * 100)}% ({getConfidenceText(scanResult.confidence)})
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Model Version:</span>
+                      <span className="text-gray-900 dark:text-white">{scanResult.model_version}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Processing Time:</span>
+                      <span className="text-gray-900 dark:text-white">{scanResult.processing_time_ms}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Timestamp:</span>
+                      <span className="text-gray-900 dark:text-white">
+                        {new Date(scanResult.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Confidence Message */}
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-gray-700 dark:text-gray-300 text-center">
+                  {getRandomMessage(scanResult.confidence)}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={handleAddToCollection}
+                  disabled={isAddingToCollection}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
+                >
+                  {isAddingToCollection ? 'Adding...' : 'Add to Collection'}
+                </button>
+
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
+                >
+                  Report Issue
+                </button>
+
+                <button
+                  onClick={handleRetry}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
+                >
+                  Scan Another Card
+                </button>
+              </div>
+
+              {/* Feedback Buttons */}
+              <div className="mt-4 flex space-x-2" data-testid="feedback-buttons">
+                <button
+                  onClick={() => handleFeedback('correct')}
+                  className="flex-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 font-medium py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
+                  data-testid="feedback-correct-button"
+                >
+                  👍 Correct
+                </button>
+                <button
+                  onClick={() => handleFeedback('incorrect')}
+                  className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-300 font-medium py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
+                  data-testid="feedback-incorrect-button"
+                >
+                  👎 Incorrect
+                </button>
+              </div>
+
+              {/* Retry for Low Confidence */}
+              {isLowConfidence(scanResult.confidence) && (
+                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4 mt-4" data-testid="low-confidence-warning">
+                  <p className="text-yellow-200 text-sm mb-3">
+                    ⚠️ Low confidence scan. Consider trying again with a clearer image.
+                  </p>
+                  <button
+                    onClick={handleRetryScan}
+                    disabled={isRetrying}
+                    className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-150 hover:scale-105"
+                    data-testid="retry-scan-button"
+                  >
+                    {isRetrying ? 'Retrying...' : '🔄 Try Again'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Report Modal */}
+          {showReportModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Report Issue</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Reason
+                    </label>
+                    <select
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="incorrect_identification">Incorrect Identification</option>
+                      <option value="technical_issue">Technical Issue</option>
+                      <option value="inappropriate_content">Inappropriate Content</option>
+                      <option value="spam">Spam</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={reportDescription}
+                      onChange={(e) => setReportDescription(e.target.value)}
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      rows={3}
+                      placeholder="Please describe the issue..."
+                    />
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleReportIssue}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg"
+                    >
+                      Submit Report
+                    </button>
+                    <button
+                      onClick={() => setShowReportModal(false)}
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

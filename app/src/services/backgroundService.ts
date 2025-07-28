@@ -134,31 +134,35 @@ class BackgroundService {
       'bg-rare-pulse'
     );
 
-    // Apply new background class
-    const bgClass = this.getBackgroundClass(this.currentTheme);
-    if (bgClass) {
-      root.classList.add(bgClass);
+    // Apply new background classes
+    const bgClasses = this.getBackgroundClasses(this.currentTheme);
+    if (bgClasses.length > 0) {
+      bgClasses.forEach(className => {
+        if (className.trim()) {
+          root.classList.add(className.trim());
+        }
+      });
     }
   }
 
-  private getBackgroundClass(theme: BackgroundTheme): string {
-    const classMap: Record<BackgroundTheme, string> = {
-      default: '',
-      sunrise: 'bg-gradient-to-br from-orange-200 via-yellow-100 to-blue-200',
-      noon: 'bg-gradient-to-b from-blue-100 to-blue-200',
-      sunset: 'bg-gradient-to-br from-orange-400 via-pink-300 to-purple-400',
-      night: 'bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900',
-      winter: 'bg-gradient-to-b from-blue-50 to-blue-100',
-      spring: 'bg-gradient-to-b from-green-50 to-pink-100',
-      summer: 'bg-gradient-to-b from-yellow-50 to-orange-100',
-      autumn: 'bg-gradient-to-b from-orange-50 to-red-100',
-      rookie_woods: 'bg-gradient-to-b from-green-100 to-green-200',
-      trainer_city: 'bg-gradient-to-b from-blue-100 to-purple-100',
-      champion_hall: 'bg-gradient-to-b from-yellow-100 to-orange-200',
-      rare_pulse: 'bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 animate-pulse'
+  private getBackgroundClasses(theme: BackgroundTheme): string[] {
+    const classMap: Record<BackgroundTheme, string[]> = {
+      default: [],
+      sunrise: ['bg-gradient-to-br', 'from-orange-200', 'via-yellow-100', 'to-blue-200'],
+      noon: ['bg-gradient-to-b', 'from-blue-100', 'to-blue-200'],
+      sunset: ['bg-gradient-to-br', 'from-orange-400', 'via-pink-300', 'to-purple-400'],
+      night: ['bg-gradient-to-b', 'from-gray-900', 'via-blue-900', 'to-purple-900'],
+      winter: ['bg-gradient-to-b', 'from-blue-50', 'to-blue-100'],
+      spring: ['bg-gradient-to-b', 'from-green-50', 'to-pink-100'],
+      summer: ['bg-gradient-to-b', 'from-yellow-50', 'to-orange-100'],
+      autumn: ['bg-gradient-to-b', 'from-orange-50', 'to-red-100'],
+      rookie_woods: ['bg-gradient-to-b', 'from-green-100', 'to-green-200'],
+      trainer_city: ['bg-gradient-to-b', 'from-blue-100', 'to-purple-100'],
+      champion_hall: ['bg-gradient-to-b', 'from-yellow-100', 'to-orange-200'],
+      rare_pulse: ['bg-gradient-to-br', 'from-purple-400', 'via-pink-400', 'to-yellow-400', 'animate-pulse']
     };
 
-    return classMap[theme] || '';
+    return classMap[theme] || [];
   }
 
   public initializeParticles(container: HTMLElement): void {

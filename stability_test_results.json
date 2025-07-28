@@ -1,0 +1,111 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 8,
+    "failed_tests": 0,
+    "success_rate": 100.0
+  },
+  "results": {
+    "Health Endpoint": true,
+    "System Status": true,
+    "Monitoring Endpoints": true,
+    "Graceful Degradation": true,
+    "Error Handling": true,
+    "Offline Capabilities": true,
+    "Performance Monitoring": true,
+    "Resilience Features": true
+  },
+  "detailed_results": [
+    {
+      "test_name": "Health Endpoint",
+      "success": true,
+      "duration": 2.05012845993042,
+      "details": "Status: healthy",
+      "timestamp": "2025-07-28T14:22:23.912016"
+    },
+    {
+      "test_name": "System Status",
+      "success": true,
+      "duration": 0.0009894371032714844,
+      "details": "Connection: online",
+      "timestamp": "2025-07-28T14:22:23.913006"
+    },
+    {
+      "test_name": "Monitoring /api/v1/monitoring/performance",
+      "success": true,
+      "duration": 0.0010018348693847656,
+      "details": "Status: 200",
+      "timestamp": "2025-07-28T14:22:23.914008"
+    },
+    {
+      "test_name": "Monitoring /api/v1/monitoring/health",
+      "success": true,
+      "duration": 0.0040018558502197266,
+      "details": "Status: 200",
+      "timestamp": "2025-07-28T14:22:23.918010"
+    },
+    {
+      "test_name": "Monitoring /api/v1/monitoring/alerts",
+      "success": true,
+      "duration": 2.031917095184326,
+      "details": "Status: 200",
+      "timestamp": "2025-07-28T14:22:25.949927"
+    },
+    {
+      "test_name": "Monitoring /api/v1/monitoring/status",
+      "success": true,
+      "duration": 0.0040035247802734375,
+      "details": "Status: 200",
+      "timestamp": "2025-07-28T14:22:25.954934"
+    },
+    {
+      "test_name": "Graceful Degradation - Normal Scan",
+      "success": true,
+      "duration": 2.0760698318481445,
+      "details": "Status: 200, Graceful: True",
+      "timestamp": "2025-07-28T14:22:28.031004"
+    },
+    {
+      "test_name": "Graceful Degradation - Simulated ML Error",
+      "success": true,
+      "duration": 2.090087890625,
+      "details": "Status: 200, Graceful: True",
+      "timestamp": "2025-07-28T14:22:28.045021"
+    },
+    {
+      "test_name": "Error Handling - /api/v1/nonexistent",
+      "success": true,
+      "duration": 0.001001119613647461,
+      "details": "Expected: 404, Got: 404",
+      "timestamp": "2025-07-28T14:22:28.046023"
+    },
+    {
+      "test_name": "Error Handling - /api/v1/scan/",
+      "success": true,
+      "duration": 0.007000923156738281,
+      "details": "Expected: 422, Got: 422",
+      "timestamp": "2025-07-28T14:22:28.052023"
+    },
+    {
+      "test_name": "Offline Capabilities",
+      "success": true,
+      "duration": 2.024489164352417,
+      "details": "Offline features: True",
+      "timestamp": "2025-07-28T14:22:30.076512"
+    },
+    {
+      "test_name": "Performance Monitoring",
+      "success": true,
+      "duration": 2.038616418838501,
+      "details": "Has metrics: True",
+      "timestamp": "2025-07-28T14:22:32.115128"
+    },
+    {
+      "test_name": "Resilience Features",
+      "success": true,
+      "duration": 0.0019998550415039062,
+      "details": "Resilience features: True",
+      "timestamp": "2025-07-28T14:22:32.117128"
+    }
+  ]
+}
