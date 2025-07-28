@@ -1,355 +1,360 @@
 """
-Monitoring service for tracking performance, errors, and system health
+Comprehensive monitoring service for production readiness
 """
 
 import time
-import logging
-import json
-import os
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
-from dataclasses import dataclass, asdict
-from collections import defaultdict, deque
-import threading
 import psutil
+import logging
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta
+from dataclasses import dataclass
 import asyncio
+import json
+
+from app.services.cache_service import cache_service, get_cache_stats
+from app.core.database import health_check as db_health_check, get_database_info
+from app.services.ml_service import ml_service
+from app.services.card_detector import card_detector
 
 logger = logging.getLogger(__name__)
 
 @dataclass
-class PerformanceMetric:
-    """Performance metric data structure"""
-    timestamp: datetime
-    operation: str
-    duration_ms: float
-    success: bool
-    error_type: Optional[str] = None
-    error_message: Optional[str] = None
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-
-@dataclass
-class SystemHealth:
-    """System health data structure"""
-    timestamp: datetime
+class SystemMetrics:
+    """System performance metrics"""
     cpu_percent: float
     memory_percent: float
-    disk_percent: float
+    disk_usage_percent: float
+    network_io: Dict[str, float]
+    timestamp: datetime
+
+@dataclass
+class ApplicationMetrics:
+    """Application-specific metrics"""
     active_connections: int
-    error_rate: float
-    response_time_avg: float
+    request_count: int
+    error_count: int
+    avg_response_time: float
+    cache_hit_rate: float
+    ml_model_status: str
+    database_status: str
+    timestamp: datetime
 
 class MonitoringService:
-    """Comprehensive monitoring service for Scanémon"""
+    """Comprehensive monitoring service"""
     
     def __init__(self):
-        self.performance_metrics: deque = deque(maxlen=10000)  # Keep last 10k metrics
-        self.error_log: deque = deque(maxlen=1000)  # Keep last 1k errors
-        self.system_health: deque = deque(maxlen=1000)  # Keep last 1k health checks
-        self.operation_times: Dict[str, List[float]] = defaultdict(list)
-        self.error_counts: Dict[str, int] = defaultdict(int)
-        self.user_sessions: Dict[str, Dict[str, Any]] = {}
+        self.metrics_history: List[SystemMetrics] = []
+        self.app_metrics_history: List[ApplicationMetrics] = []
+        self.max_history_size = 1000
+        self.start_time = datetime.utcnow()
         
-        # Start background monitoring
-        self.monitoring_active = True
-        self.monitoring_thread = threading.Thread(target=self._background_monitoring, daemon=True)
-        self.monitoring_thread.start()
+        # Performance tracking
+        self.request_times: List[float] = []
+        self.error_counts = {
+            "4xx": 0,
+            "5xx": 0,
+            "timeout": 0,
+            "database": 0,
+            "ml": 0
+        }
+        
+        # Health check intervals
+        self.last_health_check = datetime.utcnow()
+        self.health_check_interval = 300  # 5 minutes
     
-    def record_performance(self, operation: str, duration_ms: float, success: bool, 
-                          error_type: Optional[str] = None, error_message: Optional[str] = None,
-                          user_id: Optional[str] = None, session_id: Optional[str] = None):
-        """Record a performance metric"""
-        metric = PerformanceMetric(
-            timestamp=datetime.utcnow(),
-            operation=operation,
-            duration_ms=duration_ms,
-            success=success,
-            error_type=error_type,
-            error_message=error_message,
-            user_id=user_id,
-            session_id=session_id
-        )
+    def get_system_metrics(self) -> SystemMetrics:
+        """Get current system metrics"""
+        try:
+            cpu_percent = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            network = psutil.net_io_counters()
+            
+            return SystemMetrics(
+                cpu_percent=cpu_percent,
+                memory_percent=memory.percent,
+                disk_usage_percent=disk.percent,
+                network_io={
+                    "bytes_sent": network.bytes_sent,
+                    "bytes_recv": network.bytes_recv,
+                    "packets_sent": network.packets_sent,
+                    "packets_recv": network.packets_recv
+                },
+                timestamp=datetime.utcnow()
+            )
+        except Exception as e:
+            logger.error(f"Failed to get system metrics: {e}")
+            return SystemMetrics(0, 0, 0, {}, datetime.utcnow())
+    
+    def get_application_metrics(self) -> ApplicationMetrics:
+        """Get current application metrics"""
+        try:
+            # Calculate average response time
+            avg_response_time = sum(self.request_times) / len(self.request_times) if self.request_times else 0
+            
+            # Get cache stats
+            cache_stats = get_cache_stats()
+            cache_hit_rate = 0.0
+            if cache_stats.get("backend") == "redis":
+                hits = cache_stats.get("keyspace_hits", 0)
+                misses = cache_stats.get("keyspace_misses", 0)
+                total = hits + misses
+                cache_hit_rate = (hits / total * 100) if total > 0 else 0.0
+            
+            # Check ML model status
+            ml_status = "healthy" if ml_service.is_initialized else "uninitialized"
+            
+            # Check database status
+            db_status = "healthy" if db_health_check() else "unhealthy"
+            
+            return ApplicationMetrics(
+                active_connections=len(self.request_times),
+                request_count=len(self.request_times),
+                error_count=sum(self.error_counts.values()),
+                avg_response_time=avg_response_time,
+                cache_hit_rate=cache_hit_rate,
+                ml_model_status=ml_status,
+                database_status=db_status,
+                timestamp=datetime.utcnow()
+            )
+        except Exception as e:
+            logger.error(f"Failed to get application metrics: {e}")
+            return ApplicationMetrics(0, 0, 0, 0.0, 0.0, "error", "error", datetime.utcnow())
+    
+    def record_request_time(self, response_time: float):
+        """Record request response time"""
+        self.request_times.append(response_time)
         
-        self.performance_metrics.append(metric)
-        self.operation_times[operation].append(duration_ms)
-        
-        # Keep only last 1000 times per operation
-        if len(self.operation_times[operation]) > 1000:
-            self.operation_times[operation] = self.operation_times[operation][-1000:]
-        
-        if not success and error_type:
+        # Keep only last 1000 requests
+        if len(self.request_times) > 1000:
+            self.request_times = self.request_times[-1000:]
+    
+    def record_error(self, error_type: str):
+        """Record an error occurrence"""
+        if error_type in self.error_counts:
             self.error_counts[error_type] += 1
     
-    def record_error(self, error: Exception, context: Dict[str, Any]):
-        """Record an error with context"""
-        error_entry = {
-            'timestamp': datetime.utcnow(),
-            'error_type': type(error).__name__,
-            'error_message': str(error),
-            'context': context,
-            'stack_trace': getattr(error, '__traceback__', None)
-        }
+    def get_uptime(self) -> Dict[str, Any]:
+        """Get application uptime information"""
+        uptime = datetime.utcnow() - self.start_time
         
-        self.error_log.append(error_entry)
-        self.error_counts[type(error).__name__] += 1
+        return {
+            "start_time": self.start_time.isoformat(),
+            "uptime_seconds": int(uptime.total_seconds()),
+            "uptime_formatted": str(uptime).split('.')[0],  # Remove microseconds
+            "days": uptime.days,
+            "hours": uptime.seconds // 3600,
+            "minutes": (uptime.seconds % 3600) // 60
+        }
     
-    def record_system_health(self):
-        """Record current system health metrics"""
-        try:
-            health = SystemHealth(
-                timestamp=datetime.utcnow(),
-                cpu_percent=psutil.cpu_percent(interval=1),
-                memory_percent=psutil.virtual_memory().percent,
-                disk_percent=psutil.disk_usage('/').percent,
-                active_connections=len(self.user_sessions),
-                error_rate=self._calculate_error_rate(),
-                response_time_avg=self._calculate_avg_response_time()
+    def get_performance_summary(self) -> Dict[str, Any]:
+        """Get comprehensive performance summary"""
+        if not self.request_times:
+            return {"message": "No performance data available"}
+        
+        sorted_times = sorted(self.request_times)
+        
+        return {
+            "total_requests": len(self.request_times),
+            "avg_response_time": sum(self.request_times) / len(self.request_times),
+            "min_response_time": min(self.request_times),
+            "max_response_time": max(self.request_times),
+            "median_response_time": sorted_times[len(sorted_times) // 2],
+            "p95_response_time": sorted_times[int(len(sorted_times) * 0.95)],
+            "p99_response_time": sorted_times[int(len(sorted_times) * 0.99)],
+            "error_rate": (sum(self.error_counts.values()) / len(self.request_times) * 100) if self.request_times else 0,
+            "error_breakdown": self.error_counts
+        }
+    
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get comprehensive health status"""
+        current_time = datetime.utcnow()
+        
+        # Get current metrics
+        system_metrics = self.get_system_metrics()
+        app_metrics = self.get_application_metrics()
+        
+        # Store metrics in history
+        self.metrics_history.append(system_metrics)
+        self.app_metrics_history.append(app_metrics)
+        
+        # Trim history
+        if len(self.metrics_history) > self.max_history_size:
+            self.metrics_history = self.metrics_history[-self.max_history_size:]
+        if len(self.app_metrics_history) > self.max_history_size:
+            self.app_metrics_history = self.app_metrics_history[-self.max_history_size:]
+        
+        # Determine overall health
+        health_checks = {
+            "database": db_health_check(),
+            "cache": cache_service.health_check() if hasattr(cache_service, 'health_check') else True,
+            "ml_model": ml_service.is_initialized,
+            "system_resources": (
+                system_metrics.cpu_percent < 80 and
+                system_metrics.memory_percent < 85 and
+                system_metrics.disk_usage_percent < 90
             )
-            
-            self.system_health.append(health)
-            logger.info(f"System health recorded: CPU={health.cpu_percent}%, "
-                       f"Memory={health.memory_percent}%, Error rate={health.error_rate:.2f}%")
-            
-        except Exception as e:
-            logger.error(f"Failed to record system health: {e}")
-    
-    def _calculate_error_rate(self) -> float:
-        """Calculate current error rate"""
-        if not self.performance_metrics:
-            return 0.0
+        }
         
-        recent_metrics = [m for m in self.performance_metrics 
-                         if m.timestamp > datetime.utcnow() - timedelta(minutes=5)]
-        
-        if not recent_metrics:
-            return 0.0
-        
-        error_count = sum(1 for m in recent_metrics if not m.success)
-        return (error_count / len(recent_metrics)) * 100
-    
-    def _calculate_avg_response_time(self) -> float:
-        """Calculate average response time"""
-        if not self.performance_metrics:
-            return 0.0
-        
-        recent_metrics = [m for m in self.performance_metrics 
-                         if m.timestamp > datetime.utcnow() - timedelta(minutes=5)]
-        
-        if not recent_metrics:
-            return 0.0
-        
-        return sum(m.duration_ms for m in recent_metrics) / len(recent_metrics)
-    
-    def _background_monitoring(self):
-        """Background monitoring thread"""
-        while self.monitoring_active:
-            try:
-                self.record_system_health()
-                time.sleep(60)  # Record health every minute
-            except Exception as e:
-                logger.error(f"Background monitoring error: {e}")
-                time.sleep(60)
-    
-    def get_performance_summary(self, hours: int = 24) -> Dict[str, Any]:
-        """Get performance summary for the last N hours"""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
-        recent_metrics = [m for m in self.performance_metrics if m.timestamp > cutoff_time]
-        
-        if not recent_metrics:
-            return {
-                'total_operations': 0,
-                'success_rate': 0.0,
-                'avg_response_time': 0.0,
-                'error_rate': 0.0,
-                'top_operations': [],
-                'top_errors': []
-            }
-        
-        # Calculate basic stats
-        total_operations = len(recent_metrics)
-        success_count = sum(1 for m in recent_metrics if m.success)
-        success_rate = (success_count / total_operations) * 100
-        avg_response_time = sum(m.duration_ms for m in recent_metrics) / total_operations
-        error_rate = 100 - success_rate
-        
-        # Top operations by count
-        operation_counts = defaultdict(int)
-        for metric in recent_metrics:
-            operation_counts[metric.operation] += 1
-        
-        top_operations = sorted(operation_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-        
-        # Top errors
-        error_counts = defaultdict(int)
-        for metric in recent_metrics:
-            if not metric.success and metric.error_type:
-                error_counts[metric.error_type] += 1
-        
-        top_errors = sorted(error_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+        overall_health = all(health_checks.values())
         
         return {
-            'total_operations': total_operations,
-            'success_rate': success_rate,
-            'avg_response_time': avg_response_time,
-            'error_rate': error_rate,
-            'top_operations': top_operations,
-            'top_errors': top_errors,
-            'time_period_hours': hours
+            "status": "healthy" if overall_health else "degraded",
+            "timestamp": current_time.isoformat(),
+            "uptime": self.get_uptime(),
+            "health_checks": health_checks,
+            "system_metrics": {
+                "cpu_percent": system_metrics.cpu_percent,
+                "memory_percent": system_metrics.memory_percent,
+                "disk_usage_percent": system_metrics.disk_usage_percent
+            },
+            "application_metrics": {
+                "active_connections": app_metrics.active_connections,
+                "avg_response_time": app_metrics.avg_response_time,
+                "cache_hit_rate": app_metrics.cache_hit_rate,
+                "error_count": app_metrics.error_count
+            },
+            "performance_summary": self.get_performance_summary()
         }
     
-    def get_system_health_summary(self, hours: int = 1) -> Dict[str, Any]:
-        """Get system health summary for the last N hours"""
+    def get_metrics_history(self, hours: int = 24) -> Dict[str, Any]:
+        """Get metrics history for the specified time period"""
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
-        recent_health = [h for h in self.system_health if h.timestamp > cutoff_time]
         
-        if not recent_health:
-            return {
-                'cpu_avg': 0.0,
-                'memory_avg': 0.0,
-                'disk_avg': 0.0,
-                'error_rate_avg': 0.0,
-                'response_time_avg': 0.0,
-                'active_connections_avg': 0.0
+        system_history = [
+            {
+                "timestamp": m.timestamp.isoformat(),
+                "cpu_percent": m.cpu_percent,
+                "memory_percent": m.memory_percent,
+                "disk_usage_percent": m.disk_usage_percent
             }
+            for m in self.metrics_history
+            if m.timestamp > cutoff_time
+        ]
+        
+        app_history = [
+            {
+                "timestamp": m.timestamp.isoformat(),
+                "request_count": m.request_count,
+                "avg_response_time": m.avg_response_time,
+                "cache_hit_rate": m.cache_hit_rate,
+                "error_count": m.error_count
+            }
+            for m in self.app_metrics_history
+            if m.timestamp > cutoff_time
+        ]
         
         return {
-            'cpu_avg': sum(h.cpu_percent for h in recent_health) / len(recent_health),
-            'memory_avg': sum(h.memory_percent for h in recent_health) / len(recent_health),
-            'disk_avg': sum(h.disk_percent for h in recent_health) / len(recent_health),
-            'error_rate_avg': sum(h.error_rate for h in recent_health) / len(recent_health),
-            'response_time_avg': sum(h.response_time_avg for h in recent_health) / len(recent_health),
-            'active_connections_avg': sum(h.active_connections for h in recent_health) / len(recent_health)
+            "system_metrics": system_history,
+            "application_metrics": app_history,
+            "time_range_hours": hours
         }
-    
-    def get_operation_breakdown(self, operation: str, hours: int = 24) -> Dict[str, Any]:
-        """Get detailed breakdown for a specific operation"""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
-        operation_metrics = [m for m in self.performance_metrics 
-                           if m.operation == operation and m.timestamp > cutoff_time]
-        
-        if not operation_metrics:
-            return {
-                'operation': operation,
-                'total_calls': 0,
-                'success_rate': 0.0,
-                'avg_response_time': 0.0,
-                'min_response_time': 0.0,
-                'max_response_time': 0.0,
-                'error_breakdown': {}
-            }
-        
-        success_count = sum(1 for m in operation_metrics if m.success)
-        response_times = [m.duration_ms for m in operation_metrics]
-        
-        # Error breakdown
-        error_breakdown = defaultdict(int)
-        for metric in operation_metrics:
-            if not metric.success and metric.error_type:
-                error_breakdown[metric.error_type] += 1
-        
-        return {
-            'operation': operation,
-            'total_calls': len(operation_metrics),
-            'success_rate': (success_count / len(operation_metrics)) * 100,
-            'avg_response_time': sum(response_times) / len(response_times),
-            'min_response_time': min(response_times),
-            'max_response_time': max(response_times),
-            'error_breakdown': dict(error_breakdown)
-        }
-    
-    def export_metrics(self, filepath: str):
-        """Export metrics to JSON file"""
-        try:
-            data = {
-                'export_timestamp': datetime.utcnow().isoformat(),
-                'performance_metrics': [asdict(m) for m in self.performance_metrics],
-                'error_log': self.error_log,
-                'system_health': [asdict(h) for h in self.system_health],
-                'operation_times': dict(self.operation_times),
-                'error_counts': dict(self.error_counts)
-            }
-            
-            with open(filepath, 'w') as f:
-                json.dump(data, f, default=str, indent=2)
-            
-            logger.info(f"Metrics exported to {filepath}")
-            
-        except Exception as e:
-            logger.error(f"Failed to export metrics: {e}")
-    
-    def clear_old_metrics(self, days: int = 7):
-        """Clear metrics older than N days"""
-        cutoff_time = datetime.utcnow() - timedelta(days=days)
-        
-        # Clear old performance metrics
-        self.performance_metrics = deque(
-            [m for m in self.performance_metrics if m.timestamp > cutoff_time],
-            maxlen=10000
-        )
-        
-        # Clear old error log
-        self.error_log = deque(
-            [e for e in self.error_log if e['timestamp'] > cutoff_time],
-            maxlen=1000
-        )
-        
-        # Clear old system health
-        self.system_health = deque(
-            [h for h in self.system_health if h.timestamp > cutoff_time],
-            maxlen=1000
-        )
-        
-        logger.info(f"Cleared metrics older than {days} days")
     
     def get_alerts(self) -> List[Dict[str, Any]]:
         """Get current system alerts"""
         alerts = []
+        current_time = datetime.utcnow()
         
-        # Check error rate
-        error_rate = self._calculate_error_rate()
-        if error_rate > 5.0:  # More than 5% error rate
+        # System resource alerts
+        system_metrics = self.get_system_metrics()
+        if system_metrics.cpu_percent > 80:
             alerts.append({
-                'type': 'high_error_rate',
-                'severity': 'warning',
-                'message': f'Error rate is {error_rate:.1f}%',
-                'value': error_rate,
-                'threshold': 5.0
+                "type": "warning",
+                "message": f"High CPU usage: {system_metrics.cpu_percent}%",
+                "timestamp": current_time.isoformat(),
+                "severity": "medium"
             })
         
-        # Check response time
-        avg_response_time = self._calculate_avg_response_time()
-        if avg_response_time > 5000:  # More than 5 seconds
+        if system_metrics.memory_percent > 85:
             alerts.append({
-                'type': 'high_response_time',
-                'severity': 'warning',
-                'message': f'Average response time is {avg_response_time:.0f}ms',
-                'value': avg_response_time,
-                'threshold': 5000
+                "type": "warning",
+                "message": f"High memory usage: {system_metrics.memory_percent}%",
+                "timestamp": current_time.isoformat(),
+                "severity": "high"
             })
         
-        # Check system resources
-        if self.system_health:
-            latest_health = self.system_health[-1]
-            
-            if latest_health.cpu_percent > 80:
-                alerts.append({
-                    'type': 'high_cpu',
-                    'severity': 'warning',
-                    'message': f'CPU usage is {latest_health.cpu_percent:.1f}%',
-                    'value': latest_health.cpu_percent,
-                    'threshold': 80
-                })
-            
-            if latest_health.memory_percent > 85:
-                alerts.append({
-                    'type': 'high_memory',
-                    'severity': 'warning',
-                    'message': f'Memory usage is {latest_health.memory_percent:.1f}%',
-                    'value': latest_health.memory_percent,
-                    'threshold': 85
-                })
+        if system_metrics.disk_usage_percent > 90:
+            alerts.append({
+                "type": "critical",
+                "message": f"High disk usage: {system_metrics.disk_usage_percent}%",
+                "timestamp": current_time.isoformat(),
+                "severity": "critical"
+            })
+        
+        # Application alerts
+        app_metrics = self.get_application_metrics()
+        if app_metrics.avg_response_time > 1000:  # 1 second
+            alerts.append({
+                "type": "warning",
+                "message": f"Slow response time: {app_metrics.avg_response_time:.2f}ms",
+                "timestamp": current_time.isoformat(),
+                "severity": "medium"
+            })
+        
+        if app_metrics.error_count > 10:
+            alerts.append({
+                "type": "error",
+                "message": f"High error count: {app_metrics.error_count}",
+                "timestamp": current_time.isoformat(),
+                "severity": "high"
+            })
+        
+        # Service health alerts
+        if not db_health_check():
+            alerts.append({
+                "type": "critical",
+                "message": "Database connection failed",
+                "timestamp": current_time.isoformat(),
+                "severity": "critical"
+            })
+        
+        if not ml_service.is_initialized:
+            alerts.append({
+                "type": "warning",
+                "message": "ML model not initialized",
+                "timestamp": current_time.isoformat(),
+                "severity": "medium"
+            })
         
         return alerts
+    
+    def export_metrics(self, format: str = "json") -> str:
+        """Export metrics in specified format"""
+        data = {
+            "export_timestamp": datetime.utcnow().isoformat(),
+            "uptime": self.get_uptime(),
+            "health_status": self.get_health_status(),
+            "performance_summary": self.get_performance_summary(),
+            "metrics_history": self.get_metrics_history(24),
+            "alerts": self.get_alerts()
+        }
+        
+        if format == "json":
+            return json.dumps(data, indent=2)
+        else:
+            # Could add CSV or other formats here
+            return str(data)
 
 # Global monitoring service instance
-monitoring_service = MonitoringService() 
+monitoring_service = MonitoringService()
+
+# Convenience functions
+def get_health_status() -> Dict[str, Any]:
+    """Get current health status"""
+    return monitoring_service.get_health_status()
+
+def get_performance_summary() -> Dict[str, Any]:
+    """Get performance summary"""
+    return monitoring_service.get_performance_summary()
+
+def get_alerts() -> List[Dict[str, Any]]:
+    """Get current alerts"""
+    return monitoring_service.get_alerts()
+
+def record_request_time(response_time: float):
+    """Record request response time"""
+    monitoring_service.record_request_time(response_time)
+
+def record_error(error_type: str):
+    """Record an error"""
+    monitoring_service.record_error(error_type) 

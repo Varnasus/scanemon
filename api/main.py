@@ -14,9 +14,12 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.core.database import engine, Base
-from app.routes import auth, cards, scan, collection, analytics, moderation, monitoring
+from app.core.database import engine, Base, init_db, get_database_info
+from app.routes import auth, cards, scan, collection, analytics, moderation, monitoring, subscriptions
 from app.core.logging import setup_logging
+from app.middleware.security import setup_security_middleware, get_security_info
+from app.services.monitoring_service import get_health_status, get_performance_summary, get_alerts
+from app.services.resilience_service import get_resilience_status
 
 # Import models to ensure they are registered with SQLAlchemy
 from app.models import User, Card, Collection, ScanAnalytics, ScanSession
@@ -35,12 +38,12 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting Scanémon API...")
     
-    # Create database tables
+    # Initialize database
     try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
+        init_db()
+        logger.info("Database initialized successfully")
     except Exception as e:
-        logger.error(f"Failed to create database tables: {e}")
+        logger.error(f"Failed to initialize database: {e}")
     
     yield
     
@@ -60,19 +63,12 @@ def create_app() -> FastAPI:
         lifespan=lifespan
     )
     
-    # Add rate limiting
+    # Setup security middleware
+    setup_security_middleware(app)
+    
+    # Add rate limiting (legacy support)
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    
-    # Add CORS middleware
-    if settings.ENABLE_CORS:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=settings.CORS_ORIGINS,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
     
     # Include routers
     app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
@@ -82,6 +78,7 @@ def create_app() -> FastAPI:
     app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
     app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
     app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=["Monitoring"])
+    app.include_router(subscriptions.router, prefix="/api/v1", tags=["Subscriptions"])
     
     return app
 
@@ -111,11 +108,26 @@ async def root() -> Dict[str, Any]:
 
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
-    """Health check endpoint"""
+    """Comprehensive health check endpoint"""
+    from datetime import datetime
+    
+    # Get comprehensive health status
+    health_status = get_health_status()
+    performance_summary = get_performance_summary()
+    alerts = get_alerts()
+    resilience_status = get_resilience_status()
+    
     return {
-        "status": "healthy",
+        "status": health_status.get("status", "unknown"),
         "version": "1.0.0",
-        "timestamp": "2024-01-01T00:00:00Z"
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "uptime": health_status.get("uptime", {}),
+        "database": get_database_info(),
+        "security": get_security_info(),
+        "performance": performance_summary,
+        "alerts": alerts,
+        "resilience": resilience_status,
+        "health_checks": health_status.get("health_checks", {})
     }
 
 

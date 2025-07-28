@@ -15,6 +15,7 @@ from app.core.database import get_db
 from app.services.scan_analytics_service import ScanAnalyticsService
 from app.services.auth_service import AuthService
 from app.services.resilience_service import resilience_service
+from app.services.usage_service import check_scan_limit, track_scan_usage
 
 router = APIRouter()
 
@@ -116,6 +117,21 @@ async def scan_endpoint(
     db: Session = Depends(get_db),
     retry_count: int = Query(0, ge=0, le=2, description="Number of retries attempted")
 ):
+    # Check usage limits for the user
+    user_id = get_current_user_id(request, db)
+    if user_id:
+        usage_check = check_scan_limit(user_id)
+        if not usage_check.get("allowed", True):
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "error": "Usage limit exceeded",
+                    "message": f"You have reached your daily scan limit. Upgrade your plan for more scans.",
+                    "remaining": usage_check.get("remaining", 0),
+                    "limit": usage_check.get("limit", 0),
+                    "tier": usage_check.get("tier", "free")
+                }
+            )
     """Scan a Pokémon card image and return card data with comprehensive analytics and graceful degradation."""
     start_time = time.time()
     
@@ -200,6 +216,10 @@ async def scan_endpoint(
         "offline_queue_size": system_status['offline_queue_size'],
         "suggest_offline_mode": system_status['connection_status'] == 'offline'
     }
+    
+    # Track usage for the user
+    if user_id:
+        track_scan_usage(user_id)
     
     # Log to legacy system (for backward compatibility)
     log_entry = scan_logger.log_scan(card_data, accepted=False)

@@ -1,248 +1,310 @@
 """
-Resilience service for handling graceful degradation, retry logic, and offline capabilities
+Resilience service for circuit breakers, retries, and graceful degradation
 """
 
 import asyncio
-import logging
 import time
-from typing import Any, Callable, Dict, List, Optional, TypeVar
-from functools import wraps
-import json
-import os
+import logging
+from typing import Any, Callable, Optional, Dict, List
+from dataclasses import dataclass
+from enum import Enum
 from datetime import datetime, timedelta
+import functools
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+class CircuitState(Enum):
+    """Circuit breaker states"""
+    CLOSED = "closed"      # Normal operation
+    OPEN = "open"          # Failing, reject requests
+    HALF_OPEN = "half_open"  # Testing if service recovered
+
+@dataclass
+class CircuitBreakerConfig:
+    """Circuit breaker configuration"""
+    failure_threshold: int = 5
+    recovery_timeout: int = 60  # seconds
+    expected_exception: type = Exception
+    name: str = "default"
+
+class CircuitBreaker:
+    """Circuit breaker pattern implementation"""
+    
+    def __init__(self, config: CircuitBreakerConfig):
+        self.config = config
+        self.state = CircuitState.CLOSED
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.success_count = 0
+        
+    def can_execute(self) -> bool:
+        """Check if operation can be executed"""
+        if self.state == CircuitState.CLOSED:
+            return True
+        
+        if self.state == CircuitState.OPEN:
+            # Check if recovery timeout has passed
+            if (self.last_failure_time and 
+                datetime.utcnow() - self.last_failure_time > timedelta(seconds=self.config.recovery_timeout)):
+                self.state = CircuitState.HALF_OPEN
+                return True
+            return False
+        
+        if self.state == CircuitState.HALF_OPEN:
+            return True
+        
+        return False
+    
+    def on_success(self):
+        """Handle successful operation"""
+        self.failure_count = 0
+        self.success_count += 1
+        
+        if self.state == CircuitState.HALF_OPEN:
+            if self.success_count >= self.config.failure_threshold:
+                self.state = CircuitState.CLOSED
+                self.success_count = 0
+                logger.info(f"Circuit breaker '{self.config.name}' closed")
+    
+    def on_failure(self):
+        """Handle failed operation"""
+        self.failure_count += 1
+        self.last_failure_time = datetime.utcnow()
+        self.success_count = 0
+        
+        if self.failure_count >= self.config.failure_threshold:
+            self.state = CircuitState.OPEN
+            logger.warning(f"Circuit breaker '{self.config.name}' opened")
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get circuit breaker status"""
+        return {
+            "name": self.config.name,
+            "state": self.state.value,
+            "failure_count": self.failure_count,
+            "success_count": self.success_count,
+            "last_failure_time": self.last_failure_time.isoformat() if self.last_failure_time else None,
+            "can_execute": self.can_execute()
+        }
+
+class RetryConfig:
+    """Retry configuration"""
+    def __init__(self, max_attempts: int = 3, base_delay: float = 1.0, 
+                 max_delay: float = 60.0, backoff_factor: float = 2.0,
+                 exceptions: tuple = (Exception,)):
+        self.max_attempts = max_attempts
+        self.base_delay = base_delay
+        self.max_delay = max_delay
+        self.backoff_factor = backoff_factor
+        self.exceptions = exceptions
 
 class ResilienceService:
-    """Service for handling application resilience and graceful degradation"""
+    """Comprehensive resilience service"""
     
     def __init__(self):
-        self.offline_queue: List[Dict[str, Any]] = []
-        self.retry_config = {
-            'max_retries': 3,
-            'base_delay': 1.0,
-            'max_delay': 10.0,
-            'backoff_factor': 2.0
-        }
-        self.connection_status = 'unknown'  # online, offline, degraded
-        self.last_health_check = 0
-        self.health_check_interval = 30  # seconds
+        self.circuit_breakers: Dict[str, CircuitBreaker] = {}
+        self.retry_configs: Dict[str, RetryConfig] = {}
+        self.fallback_handlers: Dict[str, Callable] = {}
         
-    def get_connection_status(self) -> str:
-        """Get current connection status"""
-        return self.connection_status
-    
-    def update_connection_status(self, status: str):
-        """Update connection status"""
-        self.connection_status = status
-        logger.info(f"Connection status updated to: {status}")
-    
-    async def health_check(self) -> bool:
-        """Perform health check of external services"""
-        try:
-            # Check if we can reach external services
-            # This is a simplified check - you might want to check specific endpoints
-            current_time = time.time()
-            if current_time - self.last_health_check < self.health_check_interval:
-                return self.connection_status != 'offline'
-            
-            self.last_health_check = current_time
-            
-            # Simple connectivity check
-            # You could add more sophisticated checks here
-            self.update_connection_status('online')
-            return True
-            
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
-            self.update_connection_status('offline')
-            return False
-    
-    def retry_with_backoff(
-        self, 
-        max_retries: Optional[int] = None,
-        base_delay: Optional[float] = None,
-        max_delay: Optional[float] = None,
-        backoff_factor: Optional[float] = None
-    ):
-        """Decorator for retry logic with exponential backoff"""
+    def get_or_create_circuit_breaker(self, name: str, config: Optional[CircuitBreakerConfig] = None) -> CircuitBreaker:
+        """Get or create a circuit breaker"""
+        if name not in self.circuit_breakers:
+            config = config or CircuitBreakerConfig(name=name)
+            self.circuit_breakers[name] = CircuitBreaker(config)
         
-        def decorator(func: Callable[..., T]) -> Callable[..., T]:
-            @wraps(func)
-            async def wrapper(*args, **kwargs) -> T:
-                retries = max_retries or self.retry_config['max_retries']
-                delay = base_delay or self.retry_config['base_delay']
-                max_d = max_delay or self.retry_config['max_delay']
-                factor = backoff_factor or self.retry_config['backoff_factor']
-                
-                last_exception = None
-                
-                for attempt in range(retries + 1):
-                    try:
-                        return await func(*args, **kwargs)
-                    except Exception as e:
-                        last_exception = e
-                        
-                        if attempt == retries:
-                            logger.error(f"Function {func.__name__} failed after {retries} retries: {e}")
-                            raise e
-                        
-                        # Calculate delay with exponential backoff
-                        current_delay = min(delay * (factor ** attempt), max_d)
-                        
-                        logger.warning(f"Function {func.__name__} failed (attempt {attempt + 1}/{retries + 1}), retrying in {current_delay}s: {e}")
-                        
-                        await asyncio.sleep(current_delay)
-                
-                raise last_exception
-            return wrapper
-        return decorator
+        return self.circuit_breakers[name]
     
-    def graceful_degradation(self, fallback_func: Optional[Callable] = None):
-        """Decorator for graceful degradation with fallback"""
+    def set_retry_config(self, name: str, config: RetryConfig):
+        """Set retry configuration for a service"""
+        self.retry_configs[name] = config
+    
+    def set_fallback_handler(self, name: str, handler: Callable):
+        """Set fallback handler for a service"""
+        self.fallback_handlers[name] = handler
+    
+    async def execute_with_resilience(self, name: str, operation: Callable, 
+                                    *args, **kwargs) -> Any:
+        """Execute operation with circuit breaker, retries, and fallback"""
         
-        def decorator(func: Callable[..., T]) -> Callable[..., T]:
-            @wraps(func)
-            async def wrapper(*args, **kwargs) -> T:
-                try:
-                    # Check connection status first
-                    if self.connection_status == 'offline':
-                        if fallback_func:
-                            logger.info(f"Using fallback for {func.__name__} due to offline status")
-                            return await fallback_func(*args, **kwargs)
-                        else:
-                            raise Exception("Service unavailable in offline mode")
-                    
-                    return await func(*args, **kwargs)
-                    
-                except Exception as e:
-                    logger.error(f"Function {func.__name__} failed: {e}")
-                    
-                    if fallback_func:
-                        logger.info(f"Using fallback for {func.__name__}")
-                        try:
-                            return await fallback_func(*args, **kwargs)
-                        except Exception as fallback_error:
-                            logger.error(f"Fallback for {func.__name__} also failed: {fallback_error}")
-                            raise fallback_error
-                    else:
-                        raise e
-            return wrapper
-        return decorator
-    
-    def queue_offline_action(self, action: str, data: Dict[str, Any]) -> bool:
-        """Queue an action for later execution when online"""
-        try:
-            offline_action = {
-                'action': action,
-                'data': data,
-                'timestamp': datetime.utcnow().isoformat(),
-                'retry_count': 0
-            }
-            
-            self.offline_queue.append(offline_action)
-            self._save_offline_queue()
-            
-            logger.info(f"Queued offline action: {action}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to queue offline action: {e}")
-            return False
-    
-    def get_offline_queue(self) -> List[Dict[str, Any]]:
-        """Get current offline queue"""
-        return self.offline_queue.copy()
-    
-    async def process_offline_queue(self) -> int:
-        """Process offline queue when connection is restored"""
-        if not self.offline_queue:
-            return 0
+        # Get circuit breaker
+        circuit_breaker = self.get_or_create_circuit_breaker(name)
         
-        processed_count = 0
-        failed_actions = []
+        # Check if circuit breaker allows execution
+        if not circuit_breaker.can_execute():
+            logger.warning(f"Circuit breaker '{name}' is open, using fallback")
+            return await self._execute_fallback(name, *args, **kwargs)
         
-        for action in self.offline_queue:
+        # Get retry config
+        retry_config = self.retry_configs.get(name, RetryConfig())
+        
+        # Execute with retries
+        for attempt in range(retry_config.max_attempts):
             try:
-                # Process the action based on type
-                success = await self._process_offline_action(action)
-                if success:
-                    processed_count += 1
-                else:
-                    failed_actions.append(action)
-                    
-            except Exception as e:
-                logger.error(f"Failed to process offline action {action['action']}: {e}")
-                failed_actions.append(action)
-        
-        # Update queue with failed actions
-        self.offline_queue = failed_actions
-        self._save_offline_queue()
-        
-        logger.info(f"Processed {processed_count} offline actions, {len(failed_actions)} failed")
-        return processed_count
-    
-    async def _process_offline_action(self, action: Dict[str, Any]) -> bool:
-        """Process a single offline action"""
-        try:
-            action_type = action['action']
-            data = action['data']
-            
-            # Add retry logic for offline actions
-            if action['retry_count'] >= 3:
-                logger.warning(f"Offline action {action_type} exceeded retry limit")
-                return False
-            
-            # Process based on action type
-            if action_type == 'add_card':
-                # This would integrate with your card service
-                logger.info(f"Processing offline add_card action")
-                return True
-            elif action_type == 'delete_card':
-                logger.info(f"Processing offline delete_card action")
-                return True
-            elif action_type == 'update_card':
-                logger.info(f"Processing offline update_card action")
-                return True
-            else:
-                logger.warning(f"Unknown offline action type: {action_type}")
-                return False
+                result = await operation(*args, **kwargs)
+                circuit_breaker.on_success()
+                return result
                 
-        except Exception as e:
-            logger.error(f"Error processing offline action: {e}")
-            action['retry_count'] += 1
-            return False
+            except retry_config.exceptions as e:
+                circuit_breaker.on_failure()
+                
+                if attempt == retry_config.max_attempts - 1:
+                    # Last attempt failed, try fallback
+                    logger.error(f"Operation '{name}' failed after {retry_config.max_attempts} attempts: {e}")
+                    return await self._execute_fallback(name, *args, **kwargs)
+                
+                # Calculate delay with exponential backoff
+                delay = min(
+                    retry_config.base_delay * (retry_config.backoff_factor ** attempt),
+                    retry_config.max_delay
+                )
+                
+                logger.warning(f"Operation '{name}' failed (attempt {attempt + 1}/{retry_config.max_attempts}), "
+                             f"retrying in {delay:.2f}s: {e}")
+                
+                await asyncio.sleep(delay)
     
-    def _save_offline_queue(self):
-        """Save offline queue to local storage"""
-        try:
-            queue_file = 'offline_queue.json'
-            with open(queue_file, 'w') as f:
-                json.dump(self.offline_queue, f)
-        except Exception as e:
-            logger.error(f"Failed to save offline queue: {e}")
+    async def _execute_fallback(self, name: str, *args, **kwargs) -> Any:
+        """Execute fallback handler"""
+        if name in self.fallback_handlers:
+            try:
+                return await self.fallback_handlers[name](*args, **kwargs)
+            except Exception as e:
+                logger.error(f"Fallback handler for '{name}' failed: {e}")
+        
+        # Default fallback behavior
+        return self._get_default_fallback(name)
     
-    def _load_offline_queue(self):
-        """Load offline queue from local storage"""
-        try:
-            queue_file = 'offline_queue.json'
-            if os.path.exists(queue_file):
-                with open(queue_file, 'r') as f:
-                    self.offline_queue = json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load offline queue: {e}")
-            self.offline_queue = []
+    def _get_default_fallback(self, name: str) -> Any:
+        """Get default fallback behavior"""
+        if "ml" in name.lower():
+            return {
+                "name": "Unknown Card",
+                "confidence": 0.0,
+                "error": "ML service unavailable"
+            }
+        elif "database" in name.lower():
+            return {"error": "Database service unavailable"}
+        elif "cache" in name.lower():
+            return {"error": "Cache service unavailable"}
+        else:
+            return {"error": f"Service '{name}' unavailable"}
     
-    def get_system_status(self) -> Dict[str, Any]:
-        """Get comprehensive system status"""
+    def get_status(self) -> Dict[str, Any]:
+        """Get resilience service status"""
         return {
-            'connection_status': self.connection_status,
-            'offline_queue_size': len(self.offline_queue),
-            'last_health_check': self.last_health_check,
-            'retry_config': self.retry_config
+            "circuit_breakers": {
+                name: cb.get_status() for name, cb in self.circuit_breakers.items()
+            },
+            "retry_configs": {
+                name: {
+                    "max_attempts": config.max_attempts,
+                    "base_delay": config.base_delay,
+                    "max_delay": config.max_delay,
+                    "backoff_factor": config.backoff_factor
+                }
+                for name, config in self.retry_configs.items()
+            },
+            "fallback_handlers": list(self.fallback_handlers.keys())
         }
 
-# Global resilience service instance
-resilience_service = ResilienceService() 
+# Global resilience service
+resilience_service = ResilienceService()
+
+# Decorator for resilient operations
+def resilient(service_name: str, retry_config: Optional[RetryConfig] = None):
+    """Decorator to make functions resilient"""
+    def decorator(func):
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            if retry_config:
+                resilience_service.set_retry_config(service_name, retry_config)
+            
+            return await resilience_service.execute_with_resilience(
+                service_name, func, *args, **kwargs
+            )
+        return wrapper
+    return decorator
+
+# Pre-configured resilience patterns
+def setup_default_resilience():
+    """Setup default resilience patterns"""
+    
+    # ML service resilience
+    ml_retry_config = RetryConfig(
+        max_attempts=3,
+        base_delay=1.0,
+        max_delay=10.0,
+        backoff_factor=2.0,
+        exceptions=(Exception,)
+    )
+    resilience_service.set_retry_config("ml_service", ml_retry_config)
+    
+    # Database resilience
+    db_retry_config = RetryConfig(
+        max_attempts=5,
+        base_delay=0.5,
+        max_delay=30.0,
+        backoff_factor=1.5,
+        exceptions=(Exception,)
+    )
+    resilience_service.set_retry_config("database", db_retry_config)
+    
+    # Cache resilience
+    cache_retry_config = RetryConfig(
+        max_attempts=2,
+        base_delay=0.1,
+        max_delay=5.0,
+        backoff_factor=2.0,
+        exceptions=(Exception,)
+    )
+    resilience_service.set_retry_config("cache", cache_retry_config)
+    
+    # Setup fallback handlers
+    async def ml_fallback(*args, **kwargs):
+        return {
+            "name": "Unknown Card",
+            "confidence": 0.0,
+            "error": "ML service unavailable - using fallback"
+        }
+    
+    async def database_fallback(*args, **kwargs):
+        return {
+            "error": "Database service unavailable - using cached data",
+            "cached": True
+        }
+    
+    async def cache_fallback(*args, **kwargs):
+        return {
+            "error": "Cache service unavailable - using direct access",
+            "cached": False
+        }
+    
+    resilience_service.set_fallback_handler("ml_service", ml_fallback)
+    resilience_service.set_fallback_handler("database", database_fallback)
+    resilience_service.set_fallback_handler("cache", cache_fallback)
+    
+    logger.info("Default resilience patterns configured")
+
+# Initialize default resilience patterns
+setup_default_resilience()
+
+# Convenience functions
+def get_resilience_status() -> Dict[str, Any]:
+    """Get resilience service status"""
+    return resilience_service.get_status()
+
+def get_circuit_breaker_status(name: str) -> Optional[Dict[str, Any]]:
+    """Get specific circuit breaker status"""
+    if name in resilience_service.circuit_breakers:
+        return resilience_service.circuit_breakers[name].get_status()
+    return None
+
+def reset_circuit_breaker(name: str):
+    """Reset a circuit breaker"""
+    if name in resilience_service.circuit_breakers:
+        cb = resilience_service.circuit_breakers[name]
+        cb.state = CircuitState.CLOSED
+        cb.failure_count = 0
+        cb.success_count = 0
+        cb.last_failure_time = None
+        logger.info(f"Circuit breaker '{name}' reset") 
