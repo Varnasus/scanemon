@@ -14,7 +14,7 @@ from app.core.scan_logger import scan_logger
 from app.core.database import get_db
 from app.services.scan_analytics_service import ScanAnalyticsService
 from app.services.auth_service import AuthService
-from app.services.resilience_service import resilience_service
+from app.services.resilience_service import resilient, RetryConfig
 from app.services.usage_service import check_scan_limit, track_scan_usage
 
 router = APIRouter()
@@ -52,7 +52,7 @@ async def fallback_scan(file: UploadFile) -> Dict[str, Any]:
         "mode": "offline"
     }
 
-@resilience_service.retry_with_backoff(max_retries=2, base_delay=1.0, max_delay=5.0)
+@resilient("scan_service", RetryConfig(max_attempts=2, base_delay=1.0, max_delay=5.0))
 async def perform_scan_with_retry(file: UploadFile) -> Dict[str, Any]:
     """Perform scan with retry logic using new ML service"""
     try:

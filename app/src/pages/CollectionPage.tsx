@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { PullToRefresh } from '../components/UI/PullToRefresh';
+import { MobileXPWidget } from '../components/UI/MobileXPWidget';
+import { HoloEffect } from '../components/UI/HoloEffect';
+import { SwipeableCard } from '../components/UI/SwipeableCard';
 
 interface Card {
   id: string;
@@ -120,6 +124,11 @@ export default function CollectionPage() {
     setSelectedCards([]); // Clear selection after action
   };
 
+  const handleRefresh = async () => {
+    await fetchCards();
+    await fetchStats();
+  };
+
   // Mock data for demonstration when no cards are loaded
   const mockCards = [
     {
@@ -171,9 +180,19 @@ export default function CollectionPage() {
   const displayTotalCards = cards.length > 0 ? totalCards : mockCards.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 to-blue-900 text-white px-4 md:px-12 py-6 font-sans relative">
-      {/* Total Cards + Filters + Saved Views */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <PullToRefresh onRefresh={handleRefresh} testId="collection-pull-refresh">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-950 to-blue-900 text-white px-4 md:px-12 py-6 font-sans relative">
+        {/* Mobile XP Widget */}
+        <MobileXPWidget 
+          currentXP={1250}
+          level={3}
+          recentScans={5}
+          streak={3}
+          testId="collection-xp-widget"
+        />
+
+        {/* Total Cards + Filters + Saved Views */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h2 className="text-2xl font-bold">
           🧾 Total Cards: <span className="text-blue-400">{displayTotalCards}</span>
         </h2>
@@ -244,52 +263,60 @@ export default function CollectionPage() {
           </div>
         ) : (
           displayCards.map((card, i) => (
-            <div
+            <SwipeableCard
               key={card.id}
-              className={`relative bg-white/5 border border-white/10 rounded-xl p-4 shadow-md hover:shadow-lg hover:scale-[1.02] transition group cursor-pointer holo-effect ${
+              className={`${
                 selectedCards.includes(card.id) ? 'ring-2 ring-blue-400' : ''
               }`}
-              onClick={() => toggleCardSelection(card.id)}
-              style={{ width: '45%', minWidth: '300px', maxWidth: '400px' }}
+              onFavorite={() => console.log('Favorite:', card.name)}
+              onTrade={() => console.log('Trade:', card.name)}
+              onReport={() => console.log('Report:', card.name)}
+              onDelete={() => console.log('Delete:', card.name)}
+              testId={`swipeable-card-${card.id}`}
             >
-              {/* Card Metadata */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="text-lg font-semibold">{card.name}</div>
-                <span className="text-green-400 animate-pulse">⬆ Trending</span>
-              </div>
+              <div
+                className="relative bg-white/5 border border-white/10 rounded-xl p-4 shadow-md hover:shadow-lg hover:scale-[1.02] transition group cursor-pointer holo-effect"
+                onClick={() => toggleCardSelection(card.id)}
+              >
+                {/* Card Metadata */}
+                <div className="flex items-start justify-between mb-2">
+                  <div className="text-lg font-semibold">{card.name}</div>
+                  <span className="text-green-400 animate-pulse">⬆ Trending</span>
+                </div>
 
-              <div className="flex items-center justify-between text-sm text-gray-300">
-                <span>{card.type} · {card.rarity}</span>
-                <span>Condition: {card.condition}</span>
-              </div>
+                <div className="flex items-center justify-between text-sm text-gray-300">
+                  <span>{card.type} · {card.rarity}</span>
+                  <span>Condition: {card.condition}</span>
+                </div>
 
-              {/* XP / Tags / etc */}
-              <div className="mt-4 text-sm flex items-center gap-2 flex-wrap">
-                <span className="bg-yellow-500 text-black px-2 py-0.5 rounded-full">XP +120</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full">{card.set}</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full">{card.number}</span>
-              </div>
+                {/* XP / Tags / etc */}
+                <div className="mt-4 text-sm flex items-center gap-2 flex-wrap">
+                  <span className="bg-yellow-500 text-black px-2 py-0.5 rounded-full">XP +120</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full">{card.set}</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full">{card.number}</span>
+                </div>
 
-              {/* Card Image (Placeholder) */}
-              <div className="mt-4 h-32 bg-black/40 rounded-lg animate-pulse flex items-center justify-center text-gray-400">
-                {card.image ? (
-                  <img 
-                    src={card.image} 
-                    alt={card.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  "Card Image"
+                {/* Card Image (Placeholder) */}
+                <div className="mt-4 h-32 bg-black/40 rounded-lg animate-pulse flex items-center justify-center text-gray-400">
+                  {card.image ? (
+                    <img 
+                      src={card.image} 
+                      alt={card.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    "Card Image"
+                  )}
+                </div>
+
+                {/* Selection indicator */}
+                {selectedCards.includes(card.id) && (
+                  <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">✓</span>
+                  </div>
                 )}
               </div>
-
-              {/* Selection indicator */}
-              {selectedCards.includes(card.id) && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">✓</span>
-                </div>
-              )}
-            </div>
+            </SwipeableCard>
           ))
         )}
       </div>
@@ -362,5 +389,6 @@ export default function CollectionPage() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 } 

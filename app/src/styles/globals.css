@@ -224,4 +224,26 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Holo animations */
+@keyframes holo-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-holo-legendary {
+  animation: holo-shimmer 2s ease-in-out infinite;
+}
+
+.animate-holo-rare {
+  animation: holo-shimmer 3s ease-in-out infinite;
+}
+
+.animate-holo-uncommon {
+  animation: holo-shimmer 4s ease-in-out infinite;
 } 

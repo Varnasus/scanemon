@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { PullToRefresh } from '../components/UI/PullToRefresh';
+import { MobileXPWidget } from '../components/UI/MobileXPWidget';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -82,10 +84,25 @@ const DashboardPage: React.FC = () => {
     }
   ];
 
+  const handleRefresh = async () => {
+    // Mock refresh - in real app this would fetch updated data
+    console.log('Refreshing dashboard data...');
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
+    <PullToRefresh onRefresh={handleRefresh} testId="dashboard-pull-refresh">
+      <div className="space-y-6">
+        {/* Mobile XP Widget */}
+        <MobileXPWidget 
+          currentXP={userStats.xp}
+          level={userStats.level}
+          recentScans={3}
+          streak={userStats.streak}
+          testId="dashboard-xp-widget"
+        />
+
+        {/* Welcome Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">
@@ -290,6 +307,7 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </PullToRefresh>
   );
 };
 

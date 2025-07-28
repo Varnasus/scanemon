@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import Navigation from './Navigation';
 import UserProfile from './UserProfile';
+import { MobileDrawer, MobileMenuButton } from './MobileDrawer';
+import { FloatingActionButton } from '../UI/FloatingActionButton';
 import { componentStyles } from '../../styles/designSystem';
 
 interface LayoutProps {
@@ -14,6 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 to-cyan-900 text-white font-sans" data-testid="layout">
@@ -31,6 +34,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </span>
             </Link>
 
+            {/* Mobile Menu Button */}
+            <MobileMenuButton 
+              onClick={() => setIsMobileDrawerOpen(true)}
+              testId="mobile-menu-button"
+            />
+
             {/* User Profile & Theme Toggle */}
             <div className="flex items-center space-x-4" data-testid="layout-header-actions">
               <button
@@ -41,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 {theme === 'dark' ? (
                   <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" data-testid="theme-toggle-sun-icon">
-                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                   </svg>
                 ) : (
                   <svg className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" data-testid="theme-toggle-moon-icon">
@@ -67,8 +76,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <div className="flex" data-testid="layout-main">
-        {/* Sidebar Navigation */}
-        <aside className="w-64 bg-black/20 backdrop-blur-sm border-r border-white/10 min-h-screen" data-testid="layout-sidebar">
+        {/* Sidebar Navigation - Hidden on mobile */}
+        <aside className="hidden md:block w-64 bg-black/20 backdrop-blur-sm border-r border-white/10 min-h-screen" data-testid="layout-sidebar">
           <Navigation currentPath={location.pathname} />
         </aside>
 
@@ -79,6 +88,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
+
+      {/* Mobile Drawer */}
+      <MobileDrawer 
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        testId="mobile-drawer"
+      />
+
+      {/* Floating Action Button - Only show on mobile */}
+      <FloatingActionButton 
+        href="/scan"
+        testId="floating-scan-button"
+      />
     </div>
   );
 };

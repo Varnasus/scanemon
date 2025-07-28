@@ -187,7 +187,8 @@ def cached(prefix: str, ttl: Optional[int] = None):
     def decorator(func):
         def wrapper(*args, **kwargs):
             # Generate cache key from function name and arguments
-            cache_key = f"{prefix}:{func.__name__}:{hash(str(args) + str(sorted(kwargs.items()))}"
+            args_str = str(args) + str(sorted(kwargs.items()))
+            cache_key = f"{prefix}:{func.__name__}:{hash(args_str)}"
             
             # Try to get from cache
             cached_result = cache_service.get(cache_key)

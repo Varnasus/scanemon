@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { componentStyles } from '../styles/designSystem';
+import { PullToRefresh } from '../components/UI/PullToRefresh';
+import { MobileXPWidget } from '../components/UI/MobileXPWidget';
+import { MobileScanInterface } from '../components/UI/MobileScanInterface';
 import toast from 'react-hot-toast';
 import { ScanResult } from '../../../shared/types';
 
@@ -50,6 +53,11 @@ const ScanPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to check system status:', error);
     }
+  };
+
+  const handleRefresh = async () => {
+    await checkSystemStatus();
+    toast.success('System status refreshed! 🔄');
   };
 
   // Funny messages for different confidence levels
@@ -345,17 +353,27 @@ const ScanPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <ConnectionStatusIndicator />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Scan Pokémon Cards 📸
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Upload a photo of your Pokémon card to identify it
-            </p>
-          </div>
+      <PullToRefresh onRefresh={handleRefresh} testId="scan-page-pull-refresh">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Mobile XP Widget */}
+            <MobileXPWidget 
+              currentXP={1250}
+              level={3}
+              recentScans={5}
+              streak={3}
+              testId="scan-page-xp-widget"
+            />
+
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Scan Pokémon Cards 📸
+              </h1>
+              <p className="text-lg text-gray-600 dark:text-gray-300">
+                Upload a photo of your Pokémon card to identify it
+              </p>
+            </div>
 
           {/* System Status */}
           {systemStatus && (
@@ -375,9 +393,28 @@ const ScanPage: React.FC = () => {
             </div>
           )}
 
-          {/* File Upload Section */}
+          {/* File Upload Section - Mobile Optimized */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-            <div className="text-center">
+            {/* Mobile Interface */}
+            <div className="md:hidden">
+              <MobileScanInterface
+                onFileSelect={(file) => {
+                  setSelectedFile(file);
+                  setPreviewUrl(URL.createObjectURL(file));
+                  setScanResult(null);
+                  setError(null);
+                }}
+                onScan={() => handleScan()}
+                onRetry={handleRetry}
+                onReport={() => setShowReportModal(true)}
+                isScanning={isScanning}
+                hasSelectedFile={!!selectedFile}
+                testId="mobile-scan-interface"
+              />
+            </div>
+
+            {/* Desktop Interface */}
+            <div className="hidden md:block text-center">
               <div className="mb-4">
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
@@ -676,6 +713,7 @@ const ScanPage: React.FC = () => {
           )}
         </div>
       </div>
+      </PullToRefresh>
     </div>
   );
 };
