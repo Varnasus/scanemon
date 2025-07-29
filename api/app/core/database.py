@@ -12,10 +12,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:password@localhost:5432/scanemon"
-)
+from app.core.config import settings
+
+DATABASE_URL = settings.database_url
 
 # Fallback to SQLite for development if PostgreSQL is not available
 if DATABASE_URL.startswith("postgresql://"):

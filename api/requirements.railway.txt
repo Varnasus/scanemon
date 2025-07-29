@@ -16,4 +16,6 @@ slowapi==0.1.9
 firebase-admin==6.2.0
 supabase==2.0.2
 stripe==7.6.0
-gunicorn==21.2.0 
+gunicorn==21.2.0
+# Additional dependencies for environment sanitization
+regex==2023.10.3 
