@@ -1,0 +1,1834 @@
+{
+  "export_timestamp": "2025-07-29T14:16:30.547858",
+  "source_database": "scanemon.db",
+  "tables": {
+    "users": {
+      "schema": {
+        "table_name": "users",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "firebase_uid",
+            "type": "VARCHAR(128)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "email",
+            "type": "VARCHAR(255)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "username",
+            "type": "VARCHAR(50)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "display_name",
+            "type": "VARCHAR(100)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "avatar_url",
+            "type": "VARCHAR(500)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "trainer_level",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "experience_points",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "total_cards_scanned",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "scan_streak",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "last_scan_date",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_public_profile",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "notifications_enabled",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "theme_preference",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "last_login_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [],
+      "row_count": 0
+    },
+    "cards": {
+      "schema": {
+        "table_name": "cards",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "pokemon_tcg_id",
+            "type": "VARCHAR(100)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(200)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "set_name",
+            "type": "VARCHAR(200)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "set_code",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "number",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "rarity",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_type",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "hp",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "types",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "attacks",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "abilities",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "weaknesses",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "resistances",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "retreat_cost",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "image_url",
+            "type": "VARCHAR(500)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "image_url_hi_res",
+            "type": "VARCHAR(500)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "local_image_path",
+            "type": "VARCHAR(500)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "owner_id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "quantity",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "condition",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_foil",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_reverse_holo",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_first_edition",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "scan_confidence",
+            "type": "FLOAT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "scan_method",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "scan_date",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "notes",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_wishlist",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_favorite",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [],
+      "row_count": 0
+    },
+    "scan_analytics": {
+      "schema": {
+        "table_name": "scan_analytics",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "user_id",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "session_id",
+            "type": "VARCHAR(100)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "scan_method",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "file_size",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "file_type",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "filename",
+            "type": "VARCHAR(255)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "model_version",
+            "type": "VARCHAR(50)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "confidence_score",
+            "type": "FLOAT",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "processing_time_ms",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_name",
+            "type": "VARCHAR(200)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_set",
+            "type": "VARCHAR(200)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_rarity",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_type",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_hp",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "accepted",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "added_to_collection",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "user_feedback",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "error_type",
+            "type": "VARCHAR(100)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "error_message",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "scan_metadata",
+            "type": "JSON",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "ip_address",
+            "type": "VARCHAR(45)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "user_agent",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [
+        {
+          "id": 1,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16,
+          "file_type": "jpeg",
+          "filename": "pikachu.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 1,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:21:16.056678Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"pikachu.jpg\", \"file_size\": 16, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:21:16.080679",
+          "updated_at": "2025-07-22 21:21:18.146440"
+        },
+        {
+          "id": 2,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16,
+          "file_type": "jpeg",
+          "filename": "charizard.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:21:20.291447Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"charizard.jpg\", \"file_size\": 16, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:21:20.292445",
+          "updated_at": "2025-07-22 21:21:20.292445"
+        },
+        {
+          "id": 3,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16,
+          "file_type": "jpeg",
+          "filename": "mew.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 1,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:21:22.434412Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"mew.jpg\", \"file_size\": 16, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:21:22.435411",
+          "updated_at": "2025-07-22 21:21:24.478285"
+        },
+        {
+          "id": 4,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16,
+          "file_type": "jpeg",
+          "filename": "mewtwo.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:21:26.624087Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"mewtwo.jpg\", \"file_size\": 16, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:21:26.625089",
+          "updated_at": "2025-07-22 21:21:26.625089"
+        },
+        {
+          "id": 5,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16,
+          "file_type": "jpeg",
+          "filename": "bulbasaur.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 1,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:21:28.794368Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"bulbasaur.jpg\", \"file_size\": 16, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:21:28.795369",
+          "updated_at": "2025-07-22 21:21:30.845510"
+        },
+        {
+          "id": 6,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:22:51.177370Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-22 21:22:51.178367",
+          "updated_at": "2025-07-22 21:22:51.178367"
+        },
+        {
+          "id": 7,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 15,
+          "file_type": "jpeg",
+          "filename": "test.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:43:15.495073Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"test.jpg\", \"file_size\": 15, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:43:15.496073",
+          "updated_at": "2025-07-22 21:43:15.496073"
+        },
+        {
+          "id": 8,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 15,
+          "file_type": "jpeg",
+          "filename": "test_card.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:44:28.517754Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"test_card.jpg\", \"file_size\": 15, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:44:28.518752",
+          "updated_at": "2025-07-22 21:44:28.518752"
+        },
+        {
+          "id": 9,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 15,
+          "file_type": "jpeg",
+          "filename": "test_card.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-22T21:44:28.624796Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"test_card.jpg\", \"file_size\": 15, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "created_at": "2025-07-22 21:44:28.625792",
+          "updated_at": "2025-07-22 21:44:28.625792"
+        },
+        {
+          "id": 10,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:24:13.437065Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:24:13.439575",
+          "updated_at": "2025-07-23 01:24:13.439575"
+        },
+        {
+          "id": 11,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:29:36.473744Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:29:36.476758",
+          "updated_at": "2025-07-23 01:29:36.476758"
+        },
+        {
+          "id": 12,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:10.008231Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:10.011229",
+          "updated_at": "2025-07-23 01:50:10.011229"
+        },
+        {
+          "id": 13,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:21.684196Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:21.685196",
+          "updated_at": "2025-07-23 01:50:21.685196"
+        },
+        {
+          "id": 14,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:22.439549Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:22.440548",
+          "updated_at": "2025-07-23 01:50:22.440548"
+        },
+        {
+          "id": 15,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:22.908063Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:22.909572",
+          "updated_at": "2025-07-23 01:50:22.909572"
+        },
+        {
+          "id": 16,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:23.292642Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:23.293642",
+          "updated_at": "2025-07-23 01:50:23.293642"
+        },
+        {
+          "id": 17,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:23.645671Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:23.646672",
+          "updated_at": "2025-07-23 01:50:23.646672"
+        },
+        {
+          "id": 18,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:24.037275Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:24.038272",
+          "updated_at": "2025-07-23 01:50:24.038272"
+        },
+        {
+          "id": 19,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:25.630951Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:25.631949",
+          "updated_at": "2025-07-23 01:50:25.631949"
+        },
+        {
+          "id": 20,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:27.349748Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:27.350744",
+          "updated_at": "2025-07-23 01:50:27.350744"
+        },
+        {
+          "id": 21,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:28.841589Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:28.842590",
+          "updated_at": "2025-07-23 01:50:28.842590"
+        },
+        {
+          "id": 22,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-23T01:50:30.162724Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-23 01:50:30.163724",
+          "updated_at": "2025-07-23 01:50:30.163724"
+        },
+        {
+          "id": 23,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-28T18:00:04.194836Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-28 18:00:04.271834",
+          "updated_at": "2025-07-28 18:00:04.271834"
+        },
+        {
+          "id": 24,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-28T18:45:08.032975Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-28 18:45:08.111996",
+          "updated_at": "2025-07-28 18:45:08.111996"
+        },
+        {
+          "id": 25,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 15,
+          "file_type": "jpeg",
+          "filename": "test.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-28T19:22:27.988492Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"test.jpg\", \"file_size\": 15, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}, \"mode\": \"online\", \"system_status\": {\"connection_status\": \"online\", \"offline_queue_size\": 0, \"suggest_offline_mode\": false}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Python/3.11 aiohttp/3.9.1",
+          "created_at": "2025-07-28 19:22:28.013998",
+          "updated_at": "2025-07-28 19:22:28.013998"
+        },
+        {
+          "id": 26,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 15,
+          "file_type": "jpeg",
+          "filename": "test.jpg",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-28T19:22:28.033003Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"test.jpg\", \"file_size\": 15, \"file_type\": \"jpeg\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}, \"mode\": \"online\", \"system_status\": {\"connection_status\": \"online\", \"offline_queue_size\": 0, \"suggest_offline_mode\": false}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Python/3.11 aiohttp/3.9.1",
+          "created_at": "2025-07-28 19:22:28.034005",
+          "updated_at": "2025-07-28 19:22:28.034005"
+        },
+        {
+          "id": 27,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 1188945,
+          "file_type": "png",
+          "filename": "ChatGPT Image Jul 22, 2025, 04_52_20 PM.png",
+          "model_version": "fake_v1.2.0",
+          "confidence_score": 4.2,
+          "processing_time_ms": 0,
+          "card_name": "Pikachu",
+          "card_set": "Base Set",
+          "card_rarity": "Common",
+          "card_type": "Electric",
+          "card_hp": "40",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Pikachu\", \"set\": \"Base Set\", \"rarity\": \"Common\", \"type\": \"Electric\", \"hp\": \"40\", \"confidence\": 4.2, \"timestamp\": \"2025-07-28T20:25:04.218806Z\", \"model_version\": \"fake_v1.2.0\", \"filename\": \"ChatGPT Image Jul 22, 2025, 04_52_20 PM.png\", \"file_size\": 1188945, \"file_type\": \"png\", \"scan_method\": \"image\", \"processing_time_ms\": 0, \"model_metadata\": {\"model_type\": \"fake_classifier\", \"model_family\": \"pokemon_card_detector\", \"training_data_version\": \"v1.0\", \"last_updated\": \"2024-01-01T00:00:00Z\"}, \"mode\": \"online\", \"system_status\": {\"connection_status\": \"online\", \"offline_queue_size\": 0, \"suggest_offline_mode\": false}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-28 20:25:04.253814",
+          "updated_at": "2025-07-28 20:25:04.253814"
+        },
+        {
+          "id": 28,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "clip_v1.0.0",
+          "confidence_score": 0.347575843334198,
+          "processing_time_ms": 2691,
+          "card_name": "Charizard",
+          "card_set": "Base Set",
+          "card_rarity": "Ultra Rare",
+          "card_type": "Unknown",
+          "card_hp": "Unknown",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Charizard\", \"set\": \"Base Set\", \"number\": \"4/102\", \"rarity\": \"Ultra Rare\", \"type\": \"Unknown\", \"hp\": \"Unknown\", \"confidence\": 0.347575843334198, \"model_version\": \"clip_v1.0.0\", \"processing_time_ms\": 2691, \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"mode\": \"online\", \"detections\": [{\"bounding_box\": [19, 37, 180, 127], \"confidence\": 0.0002960243996617194, \"card_type\": \"pokemon\"}], \"metadata\": {\"model_type\": \"clip\", \"device\": \"cpu\", \"similarities\": [0.2930307984352112, 0.347575843334198, 0.2808374762535095, 0.2916097044944763, 0.2706276476383209, 0.2576828896999359, 0.3050342798233032, 0.2874753773212433, 0.27153491973876953, 0.27613458037376404], \"all_predictions\": [{\"name\": \"Pikachu\", \"confidence\": 0.2930307984352112}, {\"name\": \"Charizard\", \"confidence\": 0.347575843334198}, {\"name\": \"Mew\", \"confidence\": 0.2808374762535095}, {\"name\": \"Mewtwo\", \"confidence\": 0.2916097044944763}, {\"name\": \"Bulbasaur\", \"confidence\": 0.2706276476383209}, {\"name\": \"Squirtle\", \"confidence\": 0.2576828896999359}, {\"name\": \"Eevee\", \"confidence\": 0.3050342798233032}, {\"name\": \"Umbreon\", \"confidence\": 0.2874753773212433}, {\"name\": \"Ditto\", \"confidence\": 0.27153491973876953}, {\"name\": \"Magikarp\", \"confidence\": 0.27613458037376404}]}, \"system_status\": {\"connection_status\": \"online\", \"offline_queue_size\": 0, \"suggest_offline_mode\": false}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-28 21:56:50.034230",
+          "updated_at": "2025-07-28 21:56:50.034230"
+        },
+        {
+          "id": 29,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "clip_v1.0.0",
+          "confidence_score": 0.347575843334198,
+          "processing_time_ms": 158,
+          "card_name": "Charizard",
+          "card_set": "Base Set",
+          "card_rarity": "Ultra Rare",
+          "card_type": "Unknown",
+          "card_hp": "Unknown",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Charizard\", \"set\": \"Base Set\", \"number\": \"4/102\", \"rarity\": \"Ultra Rare\", \"type\": \"Unknown\", \"hp\": \"Unknown\", \"confidence\": 0.347575843334198, \"model_version\": \"clip_v1.0.0\", \"processing_time_ms\": 158, \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"mode\": \"online\", \"detections\": [{\"bounding_box\": [19, 37, 180, 127], \"confidence\": 0.0002960243996617194, \"card_type\": \"pokemon\"}], \"metadata\": {\"model_type\": \"clip\", \"device\": \"cpu\", \"similarities\": [0.2930307984352112, 0.347575843334198, 0.2808374762535095, 0.2916097044944763, 0.2706276476383209, 0.2576828896999359, 0.3050342798233032, 0.2874753773212433, 0.27153491973876953, 0.27613458037376404], \"all_predictions\": [{\"name\": \"Pikachu\", \"confidence\": 0.2930307984352112}, {\"name\": \"Charizard\", \"confidence\": 0.347575843334198}, {\"name\": \"Mew\", \"confidence\": 0.2808374762535095}, {\"name\": \"Mewtwo\", \"confidence\": 0.2916097044944763}, {\"name\": \"Bulbasaur\", \"confidence\": 0.2706276476383209}, {\"name\": \"Squirtle\", \"confidence\": 0.2576828896999359}, {\"name\": \"Eevee\", \"confidence\": 0.3050342798233032}, {\"name\": \"Umbreon\", \"confidence\": 0.2874753773212433}, {\"name\": \"Ditto\", \"confidence\": 0.27153491973876953}, {\"name\": \"Magikarp\", \"confidence\": 0.27613458037376404}]}, \"system_status\": {\"connection_status\": \"online\", \"offline_queue_size\": 0, \"suggest_offline_mode\": false}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-28 21:57:01.467158",
+          "updated_at": "2025-07-28 21:57:01.467158"
+        },
+        {
+          "id": 30,
+          "user_id": null,
+          "session_id": null,
+          "scan_method": "image",
+          "file_size": 16704,
+          "file_type": "webp",
+          "filename": "char.webp",
+          "model_version": "clip_v1.0.0",
+          "confidence_score": 0.347575843334198,
+          "processing_time_ms": 168,
+          "card_name": "Charizard",
+          "card_set": "Base Set",
+          "card_rarity": "Ultra Rare",
+          "card_type": "Unknown",
+          "card_hp": "Unknown",
+          "accepted": 0,
+          "added_to_collection": 0,
+          "user_feedback": null,
+          "error_type": null,
+          "error_message": null,
+          "scan_metadata": "{\"name\": \"Charizard\", \"set\": \"Base Set\", \"number\": \"4/102\", \"rarity\": \"Ultra Rare\", \"type\": \"Unknown\", \"hp\": \"Unknown\", \"confidence\": 0.347575843334198, \"model_version\": \"clip_v1.0.0\", \"processing_time_ms\": 168, \"filename\": \"char.webp\", \"file_size\": 16704, \"file_type\": \"webp\", \"scan_method\": \"image\", \"mode\": \"online\", \"detections\": [{\"bounding_box\": [19, 37, 180, 127], \"confidence\": 0.0002960243996617194, \"card_type\": \"pokemon\"}], \"metadata\": {\"model_type\": \"clip\", \"device\": \"cpu\", \"similarities\": [0.2930307984352112, 0.347575843334198, 0.2808374762535095, 0.2916097044944763, 0.2706276476383209, 0.2576828896999359, 0.3050342798233032, 0.2874753773212433, 0.27153491973876953, 0.27613458037376404], \"all_predictions\": [{\"name\": \"Pikachu\", \"confidence\": 0.2930307984352112}, {\"name\": \"Charizard\", \"confidence\": 0.347575843334198}, {\"name\": \"Mew\", \"confidence\": 0.2808374762535095}, {\"name\": \"Mewtwo\", \"confidence\": 0.2916097044944763}, {\"name\": \"Bulbasaur\", \"confidence\": 0.2706276476383209}, {\"name\": \"Squirtle\", \"confidence\": 0.2576828896999359}, {\"name\": \"Eevee\", \"confidence\": 0.3050342798233032}, {\"name\": \"Umbreon\", \"confidence\": 0.2874753773212433}, {\"name\": \"Ditto\", \"confidence\": 0.27153491973876953}, {\"name\": \"Magikarp\", \"confidence\": 0.27613458037376404}]}, \"system_status\": {\"connection_status\": \"online\", \"offline_queue_size\": 0, \"suggest_offline_mode\": false}}",
+          "ip_address": "127.0.0.1",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          "created_at": "2025-07-28 21:57:02.522511",
+          "updated_at": "2025-07-28 21:57:02.522511"
+        }
+      ],
+      "row_count": 30
+    },
+    "scan_sessions": {
+      "schema": {
+        "table_name": "scan_sessions",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "session_id",
+            "type": "VARCHAR(100)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "user_id",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "total_scans",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "successful_scans",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "failed_scans",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "average_confidence",
+            "type": "FLOAT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "total_processing_time_ms",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "status",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "started_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "completed_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [
+        {
+          "id": 1,
+          "session_id": "4c8c75a2-218d-4b99-9227-5c87a3ad7f27",
+          "user_id": null,
+          "total_scans": 0,
+          "successful_scans": 0,
+          "failed_scans": 0,
+          "average_confidence": 0.0,
+          "total_processing_time_ms": 0,
+          "status": "active",
+          "started_at": "2025-07-22 21:21:47.332426",
+          "completed_at": null,
+          "created_at": "2025-07-22 21:21:47.332426",
+          "updated_at": "2025-07-22 21:21:47.332426"
+        }
+      ],
+      "row_count": 1
+    },
+    "collections": {
+      "schema": {
+        "table_name": "collections",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "name",
+            "type": "VARCHAR(200)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "owner_id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_public",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "is_default",
+            "type": "BOOLEAN",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "color_theme",
+            "type": "VARCHAR(20)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "total_cards",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "total_value",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "updated_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [],
+      "row_count": 0
+    },
+    "collection_cards": {
+      "schema": {
+        "table_name": "collection_cards",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "collection_id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "card_id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "quantity",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "added_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [],
+      "row_count": 0
+    },
+    "moderation_queue": {
+      "schema": {
+        "table_name": "moderation_queue",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "scan_id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "reporter_id",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "reporter_ip",
+            "type": "VARCHAR(45)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "reporter_user_agent",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "reason",
+            "type": "VARCHAR(24)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "status",
+            "type": "VARCHAR(9)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "moderator_id",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "moderator_notes",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "reviewed_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "resolved_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [
+        {
+          "id": 1,
+          "scan_id": 1,
+          "reporter_id": null,
+          "reporter_ip": "127.0.0.1",
+          "reporter_user_agent": "python-requests/2.32.4",
+          "reason": "INCORRECT_IDENTIFICATION",
+          "description": "Test report - card was identified incorrectly",
+          "status": "PENDING",
+          "moderator_id": null,
+          "moderator_notes": null,
+          "created_at": "2025-07-22 21:43:03.156106",
+          "reviewed_at": null,
+          "resolved_at": null
+        },
+        {
+          "id": 2,
+          "scan_id": 8,
+          "reporter_id": null,
+          "reporter_ip": "127.0.0.1",
+          "reporter_user_agent": "python-requests/2.32.4",
+          "reason": "INCORRECT_IDENTIFICATION",
+          "description": "Card was identified incorrectly - this is a test report",
+          "status": "PENDING",
+          "moderator_id": null,
+          "moderator_notes": null,
+          "created_at": "2025-07-22 21:44:28.562274",
+          "reviewed_at": null,
+          "resolved_at": null
+        }
+      ],
+      "row_count": 2
+    },
+    "user_feedback": {
+      "schema": {
+        "table_name": "user_feedback",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": true,
+            "default": null
+          },
+          {
+            "name": "scan_id",
+            "type": "INTEGER",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "user_id",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "user_ip",
+            "type": "VARCHAR(45)",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "user_agent",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "feedback_type",
+            "type": "VARCHAR(50)",
+            "not_null": true,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "feedback_message",
+            "type": "TEXT",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "satisfaction_score",
+            "type": "INTEGER",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          },
+          {
+            "name": "created_at",
+            "type": "DATETIME",
+            "not_null": false,
+            "primary_key": false,
+            "default": null
+          }
+        ]
+      },
+      "data": [
+        {
+          "id": 1,
+          "scan_id": 1,
+          "user_id": null,
+          "user_ip": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "feedback_type": "retry",
+          "feedback_message": "Test feedback - user wanted to retry",
+          "satisfaction_score": 3,
+          "created_at": "2025-07-22 21:43:09.331062"
+        },
+        {
+          "id": 2,
+          "scan_id": 8,
+          "user_id": null,
+          "user_ip": "127.0.0.1",
+          "user_agent": "python-requests/2.32.4",
+          "feedback_type": "retry",
+          "feedback_message": "User wanted to retry with same image",
+          "satisfaction_score": 3,
+          "created_at": "2025-07-22 21:44:28.538761"
+        }
+      ],
+      "row_count": 2
+    }
+  }
+}

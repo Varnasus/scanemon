@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import { auth } from '../services/firebase';
+import { apiService } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   authMode: 'firebase' | 'local' | 'offline';
   connectionStatus: 'online' | 'offline' | 'degraded';
+  backendToken: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -39,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authMode, setAuthMode] = useState<'firebase' | 'local' | 'offline'>('firebase');
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('online');
+  const [backendToken, setBackendToken] = useState<string | null>(null);
 
   // Check connection status
   useEffect(() => {
@@ -64,6 +67,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
+  // Sync Firebase user with backend
+  const syncWithBackend = async (firebaseUser: User) => {
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      const response = await apiService.syncFirebaseAuth(idToken);
+      setBackendToken(response.token);
+      
+      // Store token in localStorage for persistence
+      localStorage.setItem('backendToken', response.token);
+      
+      console.log('Successfully synced with backend');
+    } catch (error) {
+      console.error('Failed to sync with backend:', error);
+      // Continue without backend sync for now
+    }
+  };
+
   useEffect(() => {
     // Check if Firebase auth is available
     if (!auth) {
@@ -73,22 +93,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-    const unsubscribe = auth.onAuthStateChanged((user: User | null) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser: User | null) => {
+      setUser(firebaseUser);
       
-      // Update auth mode based on user state
-      if (user) {
+      if (firebaseUser) {
         setAuthMode('firebase');
-      } else if (connectionStatus === 'offline') {
-        setAuthMode('offline');
+        // Sync with backend when user signs in
+        await syncWithBackend(firebaseUser);
       } else {
-        setAuthMode('local');
+        // Clear backend token when user signs out
+        setBackendToken(null);
+        localStorage.removeItem('backendToken');
       }
+      
+      setLoading(false);
     });
 
     return unsubscribe;
-  }, [connectionStatus]);
+  }, []);
 
   const handleAuthFailure = (error: any) => {
     console.error('Auth failure:', error);
@@ -329,6 +351,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     if (authMode === 'local' || authMode === 'offline') {
       setUser(null);
+      setBackendToken(null);
+      localStorage.removeItem('backendToken');
       return;
     }
 
@@ -339,10 +363,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { signOut: firebaseSignOut } = await import('firebase/auth');
       await firebaseSignOut(auth);
+      setBackendToken(null);
+      localStorage.removeItem('backendToken');
     } catch (error) {
       console.error('Sign out error:', error);
       // Force sign out even if Firebase fails
       setUser(null);
+      setBackendToken(null);
+      localStorage.removeItem('backendToken');
       throw error;
     }
   };
@@ -399,32 +427,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       mode: authMode,
       status: connectionStatus,
       features: {
-        cloud_sync: authMode === 'firebase' && connectionStatus === 'online',
-        local_storage: true,
-        offline_support: true,
-        social_login: authMode !== 'offline'
+        firebase: authMode === 'firebase',
+        backend: !!backendToken,
+        offline: authMode === 'offline',
+        social: authMode !== 'offline'
       }
     };
   };
 
+  const value: AuthContextType = {
+    user,
+    loading,
+    authMode,
+    connectionStatus,
+    backendToken,
+    signIn,
+    signUp,
+    signInWithGoogle,
+    signInWithFacebook,
+    signInWithApple,
+    signInWithTwitter,
+    signInWithGitHub,
+    signOut,
+    updateProfile,
+    resetPassword,
+    getAuthStatus
+  };
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      authMode,
-      connectionStatus,
-      signIn,
-      signUp,
-      signInWithGoogle,
-      signInWithFacebook,
-      signInWithApple,
-      signInWithTwitter,
-      signInWithGitHub,
-      signOut,
-      updateProfile,
-      resetPassword,
-      getAuthStatus
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

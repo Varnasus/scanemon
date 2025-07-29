@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface PullToRefreshProps {
   children: React.ReactNode;
@@ -21,27 +21,35 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const startY = useRef<number>(0);
   const currentY = useRef<number>(0);
+  const isAtTop = useRef<boolean>(false);
 
-  const handleTouchStart = (e: TouchEvent) => {
-    if (containerRef.current?.scrollTop === 0) {
+  const checkIfAtTop = useCallback(() => {
+    if (containerRef.current) {
+      isAtTop.current = containerRef.current.scrollTop === 0;
+    }
+  }, []);
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    checkIfAtTop();
+    if (isAtTop.current && !isRefreshing) {
       startY.current = e.touches[0].clientY;
       setIsPulling(true);
     }
-  };
+  }, [checkIfAtTop, isRefreshing]);
 
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!isPulling || isRefreshing) return;
 
     currentY.current = e.touches[0].clientY;
     const distance = Math.max(0, currentY.current - startY.current);
     
-    if (distance > 0) {
+    if (distance > 0 && isAtTop.current) {
       e.preventDefault();
       setPullDistance(distance);
     }
-  };
+  }, [isPulling, isRefreshing]);
 
-  const handleTouchEnd = async () => {
+  const handleTouchEnd = useCallback(async () => {
     if (!isPulling || isRefreshing) return;
 
     if (pullDistance >= threshold) {
@@ -57,22 +65,29 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
 
     setIsPulling(false);
     setPullDistance(0);
-  };
+  }, [isPulling, isRefreshing, pullDistance, threshold, onRefresh]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    // Add scroll listener to track when we're at the top
+    const handleScroll = () => {
+      checkIfAtTop();
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
     container.addEventListener('touchstart', handleTouchStart, { passive: false });
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
     container.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     return () => {
+      container.removeEventListener('scroll', handleScroll);
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isPulling, pullDistance, isRefreshing, threshold]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd, checkIfAtTop]);
 
   const progress = Math.min(pullDistance / threshold, 1);
   const shouldShowIndicator = isPulling || isRefreshing;

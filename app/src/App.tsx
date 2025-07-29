@@ -1,22 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout/Layout';
-import HomePage from './pages/HomePage';
-import ScanPage from './pages/ScanPage';
-import CollectionPage from './pages/CollectionPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import ModerationPage from './pages/ModerationPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
-import DashboardPage from './pages/DashboardPage';
-import CardDetailPage from './pages/CardDetailPage';
-import MonitoringPage from './pages/MonitoringPage';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
+import { ErrorBoundary } from './components/UI/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { LoadingSpinner } from './components/UI/LoadingSpinner';
+
+// Lazy load pages for better performance
+const HomePage = React.lazy(() => import('./pages/HomePage'));
+const ScanPage = React.lazy(() => import('./pages/ScanPage'));
+const CollectionPage = React.lazy(() => import('./pages/CollectionPage'));
+const AnalyticsPage = React.lazy(() => import('./pages/AnalyticsPage'));
+const ModerationPage = React.lazy(() => import('./pages/ModerationPage'));
+const LoginPage = React.lazy(() => import('./pages/LoginPage'));
+const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
+const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
+const CardDetailPage = React.lazy(() => import('./pages/CardDetailPage'));
+const MonitoringPage = React.lazy(() => import('./pages/MonitoringPage'));
 
 // Service Worker Registration
 const registerServiceWorker = async () => {
@@ -93,56 +96,60 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="App min-h-screen">
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 3000,
-                  iconTheme: {
-                    primary: '#10B981',
-                    secondary: '#fff',
+          <ErrorBoundary testId="app-error-boundary">
+            <div className="App min-h-screen">
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
                   },
-                },
-                error: {
-                  duration: 5000,
-                  iconTheme: {
-                    primary: '#EF4444',
-                    secondary: '#fff',
+                  success: {
+                    duration: 3000,
+                    iconTheme: {
+                      primary: '#10B981',
+                      secondary: '#fff',
+                    },
                   },
-                },
-              }}
-            />
-            <Layout>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/scan" element={<ScanPage />} />
-                <Route path="/collection" element={<CollectionPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/moderation" element={<ModerationPage />} />
-                <Route path="/monitoring" element={<MonitoringPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/card/:id" element={<CardDetailPage />} />
-                <Route path="*" element={
-                  <div className="p-8 text-center">
-                    <h1 className="text-2xl font-bold mb-4">404 - Page Not Found</h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      The page you're looking for doesn't exist.
-                    </p>
-                  </div>
-                } />
-              </Routes>
-            </Layout>
-          </div>
+                  error: {
+                    duration: 5000,
+                    iconTheme: {
+                      primary: '#EF4444',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+              <Layout>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/scan" element={<ScanPage />} />
+                    <Route path="/collection" element={<CollectionPage />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
+                    <Route path="/moderation" element={<ModerationPage />} />
+                    <Route path="/monitoring" element={<MonitoringPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/card/:id" element={<CardDetailPage />} />
+                    <Route path="*" element={
+                      <div className="p-8 text-center">
+                        <h1 className="text-2xl font-bold mb-4">404 - Page Not Found</h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          The page you're looking for doesn't exist.
+                        </p>
+                      </div>
+                    } />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </div>
+          </ErrorBoundary>
         </Router>
       </AuthProvider>
     </ThemeProvider>

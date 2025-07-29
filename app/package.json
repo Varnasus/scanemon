@@ -20,6 +20,7 @@
     "axios": "^1.4.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "compressorjs": "^1.2.1",
     "date-fns": "^2.30.0",
     "firebase": "^10.1.0",
     "framer-motion": "^10.16.4",

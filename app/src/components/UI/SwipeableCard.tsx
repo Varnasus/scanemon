@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useSwipeable } from 'react-swipeable';
 
 interface SwipeableCardProps {
@@ -22,33 +22,94 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
 }) => {
   const [isSwiped, setIsSwiped] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const [swipeDistance, setSwipeDistance] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
+  const resetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear any existing timeout
+  const clearResetTimeout = useCallback(() => {
+    if (resetTimeoutRef.current) {
+      clearTimeout(resetTimeoutRef.current);
+      resetTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Reset swipe state
+  const resetSwipe = useCallback(() => {
+    setIsSwiped(false);
+    setSwipeDirection(null);
+    setSwipeDistance(0);
+  }, []);
 
   const handlers = useSwipeable({
+    onSwiping: (eventData) => {
+      // Show partial swipe feedback
+      const distance = Math.abs(eventData.deltaX);
+      setSwipeDistance(distance);
+      
+      if (distance > 20) {
+        setSwipeDirection(eventData.deltaX > 0 ? 'right' : 'left');
+      }
+    },
     onSwipedLeft: (eventData) => {
       setSwipeDirection('left');
       setIsSwiped(true);
+      setSwipeDistance(80); // Full swipe distance
+      
+      // Auto-reset after 3 seconds
+      clearResetTimeout();
+      resetTimeoutRef.current = setTimeout(resetSwipe, 3000);
     },
     onSwipedRight: (eventData) => {
       setSwipeDirection('right');
       setIsSwiped(true);
+      setSwipeDistance(80); // Full swipe distance
+      
+      // Auto-reset after 3 seconds
+      clearResetTimeout();
+      resetTimeoutRef.current = setTimeout(resetSwipe, 3000);
     },
-    onSwiped: () => {
-      // Reset after a delay
-      setTimeout(() => {
-        setIsSwiped(false);
-        setSwipeDirection(null);
-      }, 3000);
+    onSwiped: (eventData) => {
+      // If swipe wasn't long enough, reset immediately
+      if (Math.abs(eventData.deltaX) < 50) {
+        resetSwipe();
+      }
     },
-    trackMouse: false
+    trackMouse: false,
+    preventScrollOnSwipe: true,
+    delta: 10, // Minimum distance to trigger swipe
+    swipeDuration: 500, // Maximum time for swipe gesture
   });
 
-  const handleAction = (action: () => void | undefined) => {
+  const handleAction = useCallback((action: (() => void) | undefined) => {
     if (action) {
       action();
-      setIsSwiped(false);
-      setSwipeDirection(null);
+      clearResetTimeout();
+      resetSwipe();
     }
+  }, [clearResetTimeout, resetSwipe]);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      clearResetTimeout();
+    };
+  }, [clearResetTimeout]);
+
+  // Calculate transform based on swipe state
+  const getTransform = () => {
+    if (!isSwiped && swipeDistance === 0) return 'translateX(0)';
+    
+    const maxDistance = 80;
+    const currentDistance = Math.min(swipeDistance, maxDistance);
+    
+    if (swipeDirection === 'left') {
+      return `translateX(-${currentDistance}px)`;
+    } else if (swipeDirection === 'right') {
+      return `translateX(${currentDistance}px)`;
+    }
+    
+    return 'translateX(0)';
   };
 
   return (
@@ -111,13 +172,10 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
       {/* Card content */}
       <div
         ref={cardRef}
-        className={`
-          relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4
-          transition-all duration-300 ease-out
-          ${isSwiped ? 'transform translate-x-0' : ''}
-          ${swipeDirection === 'left' ? 'translate-x-16' : ''}
-          ${swipeDirection === 'right' ? '-translate-x-16' : ''}
-        `}
+        className="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 transition-all duration-300 ease-out"
+        style={{
+          transform: getTransform(),
+        }}
       >
         {children}
       </div>

@@ -14,7 +14,8 @@
     "test:frontend": "cd app && npm test",
     "clean": "npm run clean:node && npm run clean:python",
     "clean:node": "cd app && rm -rf node_modules package-lock.json",
-    "clean:python": "cd api && find . -type d -name __pycache__ -delete && find . -type f -name '*.pyc' -delete"
+    "clean:python": "cd api && find . -type d -name __pycache__ -delete && find . -type f -name '*.pyc' -delete",
+    "start": "cd api && gunicorn main:app --bind 0.0.0.0:8000 --workers 4 --worker-class uvicorn.workers.UvicornWorker"
   },
   "keywords": [
     "pokemon",
@@ -36,5 +37,8 @@
   "bugs": {
     "url": "https://github.com/your-username/scanemon/issues"
   },
-  "homepage": "https://github.com/your-username/scanemon#readme"
+  "homepage": "https://github.com/your-username/scanemon#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

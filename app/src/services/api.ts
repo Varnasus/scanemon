@@ -165,12 +165,22 @@ export const apiService = {
 
   // User stats and achievements
   async getUserStats(): Promise<UserStats> {
-    const response = await api.get<UserStats>('/api/users/stats');
+    const response = await api.get<UserStats>('/api/v1/users/stats');
     return response.data;
   },
 
   async getAchievements(): Promise<Achievement[]> {
-    const response = await api.get<Achievement[]>('/api/users/achievements');
+    const response = await api.get<Achievement[]>('/api/v1/users/achievements');
+    return response.data;
+  },
+
+  async getUserProfile(): Promise<any> {
+    const response = await api.get('/api/v1/users/profile');
+    return response.data;
+  },
+
+  async updateUserProfile(profileData: any): Promise<any> {
+    const response = await api.put('/api/v1/users/profile', profileData);
     return response.data;
   },
 
@@ -182,6 +192,22 @@ export const apiService = {
 
   async register(email: string, password: string, displayName: string): Promise<{ token: string; user: any }> {
     const response = await api.post('/api/auth/register', { email, password, displayName });
+    return response.data;
+  },
+
+  // Firebase authentication sync
+  async syncFirebaseAuth(idToken: string): Promise<{ token: string; user: any }> {
+    const response = await api.post('/api/auth/firebase', { id_token: idToken });
+    return response.data;
+  },
+
+  async getCurrentUser(): Promise<any> {
+    const response = await api.get('/api/auth/me');
+    return response.data;
+  },
+
+  async refreshToken(): Promise<{ token: string; user: any }> {
+    const response = await api.post('/api/auth/refresh');
     return response.data;
   },
 

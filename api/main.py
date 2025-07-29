@@ -15,7 +15,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.database import engine, Base, init_db, get_database_info
-from app.routes import auth, cards, scan, collection, analytics, moderation, monitoring, subscriptions
+from app.routes import auth, cards, scan, collection, analytics, moderation, monitoring, subscriptions, users
 from app.core.logging import setup_logging
 from app.middleware.security import setup_security_middleware, get_security_info
 from app.services.monitoring_service import get_health_status, get_performance_summary, get_alerts
@@ -79,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(moderation.router, prefix="/api/v1/moderation", tags=["Moderation"])
     app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=["Monitoring"])
     app.include_router(subscriptions.router, prefix="/api/v1", tags=["Subscriptions"])
+    app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
     
     return app
 
