@@ -109,27 +109,24 @@ async def root() -> Dict[str, Any]:
 
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
-    """Comprehensive health check endpoint"""
+    """Simple health check endpoint for Railway"""
     from datetime import datetime
     
-    # Get comprehensive health status
-    health_status = get_health_status()
-    performance_summary = get_performance_summary()
-    alerts = get_alerts()
-    resilience_status = get_resilience_status()
-    
-    return {
-        "status": health_status.get("status", "unknown"),
-        "version": "1.0.0",
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "uptime": health_status.get("uptime", {}),
-        "database": get_database_info(),
-        "security": get_security_info(),
-        "performance": performance_summary,
-        "alerts": alerts,
-        "resilience": resilience_status,
-        "health_checks": health_status.get("health_checks", {})
-    }
+    try:
+        # Basic health check without external dependencies
+        return {
+            "status": "healthy",
+            "version": "1.0.0",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "message": "Scanémon API is running"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "version": "1.0.0",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "error": str(e)
+        }
 
 
 @app.exception_handler(HTTPException)

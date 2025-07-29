@@ -8,8 +8,8 @@ import os
 # Add the api directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'api'))
 
-# Import the FastAPI app from the api directory
-from api.main import app
+# Import the simple FastAPI app from the api directory
+from api.main_simple import app
 
 if __name__ == "__main__":
     import uvicorn
