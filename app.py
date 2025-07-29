@@ -42,6 +42,11 @@ async def health_check() -> Dict[str, Any]:
         "message": "Scanémon API is running"
     }
 
+@app.get("/test")
+async def test() -> Dict[str, Any]:
+    """Simple test endpoint"""
+    return {"message": "API is working"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
