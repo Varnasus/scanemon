@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "api/Dockerfile"
+    "dockerfilePath": "api/Dockerfile.railway"
   },
   "deploy": {
     "healthcheckPath": "/health",
@@ -11,6 +11,7 @@
     "restartPolicyMaxRetries": 10
   },
   "variables": {
-    "NIXPACKS_NODEJS_ENABLED": "false"
+    "NIXPACKS_NODEJS_ENABLED": "false",
+    "NIXPACKS_PYTHON_ENABLED": "false"
   }
 } 
