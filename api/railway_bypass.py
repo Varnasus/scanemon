@@ -9,45 +9,12 @@ import re
 import subprocess
 import time
 
-def sanitize_environment_aggressively():
-    """Aggressively sanitize all environment variables"""
-    print("🚨 AGGRESSIVE ENVIRONMENT SANITIZATION...")
-    
-    # Get all environment variables
-    env_vars = dict(os.environ)
-    cleaned_count = 0
-    
-    for key, value in env_vars.items():
-        if isinstance(value, str):
-            # Remove ALL problematic characters
-            cleaned_value = re.sub(r'[\x00-\x1F\x7F]', '', value)
-            cleaned_value = re.sub(r'\\u0000', '', cleaned_value)
-            cleaned_value = re.sub(r'\\u[0-9a-fA-F]{4}', '', cleaned_value)  # Remove all Unicode escapes
-            cleaned_value = cleaned_value.strip()
-            
-            if cleaned_value != value:
-                os.environ[key] = cleaned_value
-                cleaned_count += 1
-                print(f"🧹 Cleaned {key}: removed problematic characters")
-    
-    print(f"✅ Aggressively sanitized {cleaned_count} environment variables")
-    return cleaned_count
-
-def fix_database_url():
-    """Fix database URL issues"""
-    if 'DATABASE_URL' in os.environ:
-        db_url = os.environ['DATABASE_URL']
-        
-        # Fix protocol
-        if db_url.startswith('postgres://'):
-            os.environ['DATABASE_URL'] = db_url.replace('postgres://', 'postgresql://', 1)
-            print("Fixed DATABASE_URL protocol")
-        
-        # Clean URL
-        cleaned_url = re.sub(r'[\x00-\x1F\x7F]', '', db_url)
-        cleaned_url = re.sub(r'\\u0000', '', cleaned_url)
-        os.environ['DATABASE_URL'] = cleaned_url.strip()
-        print("Cleaned DATABASE_URL")
+# Import our comprehensive data sanitization utility
+from app.utils.data_sanitizer import (
+    sanitize_environment_variables,
+    sanitize_database_url,
+    sanitize_for_railway
+)
 
 def setup_clean_environment():
     """Set up a clean environment for Railway"""
@@ -77,17 +44,21 @@ def setup_clean_environment():
             print(f"Set default {key}={value}")
 
 def main():
-    """Main function with aggressive environment cleaning"""
-    print("🚀 RAILWAY BYPASS: Starting deployment...")
+    """Main function with comprehensive data sanitization"""
+    print("🚀 RAILWAY BYPASS: Starting deployment with comprehensive sanitization...")
     
     try:
-        # Step 1: Aggressively sanitize environment
-        cleaned_count = sanitize_environment_aggressively()
+        # Step 1: Comprehensive environment sanitization
+        print("🧹 Step 1: Sanitizing environment variables...")
+        cleaned_count = sanitize_environment_variables()
         
-        # Step 2: Fix database URL
-        fix_database_url()
+        # Step 2: Fix database URL specifically
+        print("🔧 Step 2: Fixing database URL...")
+        if 'DATABASE_URL' in os.environ:
+            os.environ['DATABASE_URL'] = sanitize_database_url(os.environ['DATABASE_URL'])
         
         # Step 3: Set up clean environment
+        print("⚙️ Step 3: Setting up clean environment...")
         setup_clean_environment()
         
         if cleaned_count > 0:
@@ -95,11 +66,11 @@ def main():
             print("This should prevent Railway's internal Prisma errors")
         
         # Step 4: Wait a moment for Railway's systems to settle
-        print("⏳ Waiting for Railway's internal systems to settle...")
+        print("⏳ Step 4: Waiting for Railway's internal systems to settle...")
         time.sleep(2)
         
         # Step 5: Start the application
-        print("🚀 Starting main application...")
+        print("🚀 Step 5: Starting main application...")
         
         # Import and start the application
         from main import create_app

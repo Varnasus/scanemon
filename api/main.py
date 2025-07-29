@@ -18,8 +18,10 @@ from app.core.database import engine, Base, init_db, get_database_info
 from app.routes import auth, cards, scan, collection, analytics, moderation, monitoring, subscriptions, users
 from app.core.logging import setup_logging
 from app.middleware.security import setup_security_middleware, get_security_info
+from app.middleware.data_sanitization import setup_data_sanitization_middleware
 from app.services.monitoring_service import get_health_status, get_performance_summary, get_alerts
 from app.services.resilience_service import get_resilience_status
+from app.utils.data_sanitizer import sanitize_environment_variables, sanitize_database_url
 
 # Import models to ensure they are registered with SQLAlchemy
 from app.models import User, Card, Collection, ScanAnalytics, ScanSession
@@ -37,6 +39,17 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     logger.info("Starting Scanémon API...")
+    
+    # CRITICAL: Sanitize environment variables at startup
+    logger.info("🧹 Sanitizing environment variables at startup...")
+    cleaned_count = sanitize_environment_variables()
+    if cleaned_count > 0:
+        logger.warning(f"Sanitized {cleaned_count} environment variables at startup")
+    
+    # Fix database URL if needed
+    if 'DATABASE_URL' in os.environ:
+        os.environ['DATABASE_URL'] = sanitize_database_url(os.environ['DATABASE_URL'])
+        logger.info("Database URL sanitized at startup")
     
     # Initialize database
     try:
@@ -65,6 +78,9 @@ def create_app() -> FastAPI:
     
     # Setup security middleware
     setup_security_middleware(app)
+    
+    # Setup data sanitization middleware
+    setup_data_sanitization_middleware(app)
     
     # Add rate limiting (legacy support)
     app.state.limiter = limiter
