@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Railway-specific startup script with environment sanitization
+Railway-specific startup script with comprehensive environment sanitization
 """
 
 import os
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def sanitize_environment():
     """Sanitize environment variables to remove null bytes and problematic characters"""
-    logger.info("Sanitizing environment variables...")
+    logger.info("🧹 Sanitizing environment variables...")
     
     # List of critical environment variables to sanitize
     critical_vars = [
@@ -39,6 +39,7 @@ def sanitize_environment():
         'STRIPE_WEBHOOK_SECRET'
     ]
     
+    cleaned_count = 0
     for var_name in critical_vars:
         if var_name in os.environ:
             original_value = os.environ[var_name]
@@ -55,8 +56,21 @@ def sanitize_environment():
             if sanitized_value != original_value:
                 logger.warning(f"Sanitized {var_name}: removed problematic characters")
                 os.environ[var_name] = sanitized_value
+                cleaned_count += 1
     
-    logger.info("Environment sanitization completed")
+    # Clean ALL environment variables
+    env_vars = dict(os.environ)
+    for key, value in env_vars.items():
+        if isinstance(value, str):
+            cleaned_value = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', value)
+            cleaned_value = re.sub(r'\\u0000', '', cleaned_value)
+            cleaned_value = cleaned_value.strip()
+            
+            if cleaned_value != value:
+                os.environ[key] = cleaned_value
+                cleaned_count += 1
+    
+    logger.info(f"✅ Sanitized {cleaned_count} environment variables")
 
 
 def validate_database_url():
@@ -72,14 +86,17 @@ def validate_database_url():
         
         # Remove any null bytes or control characters
         sanitized_url = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', db_url)
+        sanitized_url = re.sub(r'\\u0000', '', sanitized_url)
         if sanitized_url != db_url:
             os.environ['DATABASE_URL'] = sanitized_url
             logger.warning("Removed problematic characters from DATABASE_URL")
+        
+        logger.info("✅ Database URL validated and cleaned")
 
 
 def setup_railway_environment():
     """Set up Railway-specific environment"""
-    logger.info("Setting up Railway environment...")
+    logger.info("⚙️ Setting up Railway environment...")
     
     # Set default values for Railway
     defaults = {
@@ -94,7 +111,9 @@ def setup_railway_environment():
         'CACHE_MAX_SIZE': '1000',
         'DB_POOL_SIZE': '10',
         'DB_MAX_OVERFLOW': '20',
-        'DB_POOL_RECYCLE': '3600'
+        'DB_POOL_RECYCLE': '3600',
+        'ENABLE_SWAGGER': 'False',  # Disable docs in production
+        'LOG_LEVEL': 'INFO'
     }
     
     for key, value in defaults.items():
@@ -103,11 +122,29 @@ def setup_railway_environment():
             logger.info(f"Set default {key}={value}")
 
 
-def main():
-    """Main startup function"""
-    logger.info("Starting Railway deployment...")
+def check_dependencies():
+    """Check if all required dependencies are available"""
+    logger.info("🔍 Checking dependencies...")
     
     try:
+        import fastapi
+        import uvicorn
+        import sqlalchemy
+        import psycopg2
+        logger.info("✅ All core dependencies available")
+    except ImportError as e:
+        logger.error(f"❌ Missing dependency: {e}")
+        sys.exit(1)
+
+
+def main():
+    """Main startup function"""
+    logger.info("🚀 Starting Railway deployment...")
+    
+    try:
+        # Check dependencies first
+        check_dependencies()
+        
         # Sanitize environment variables
         sanitize_environment()
         
@@ -127,16 +164,21 @@ def main():
         port = int(os.getenv('PORT', 8000))
         host = os.getenv('API_HOST', '0.0.0.0')
         
-        logger.info(f"Starting server on {host}:{port}")
+        logger.info(f"🌐 Starting server on {host}:{port}")
+        logger.info(f"📊 Health check available at: http://{host}:{port}/health")
+        
         uvicorn.run(
             app,
             host=host,
             port=port,
-            log_level="info"
+            log_level="info",
+            access_log=True
         )
         
     except Exception as e:
-        logger.error(f"Failed to start application: {e}")
+        logger.error(f"❌ Failed to start application: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         sys.exit(1)
 
 
