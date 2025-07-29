@@ -9,6 +9,36 @@ import re
 import logging
 from pathlib import Path
 
+# CRITICAL: Sanitize environment BEFORE any other imports
+def sanitize_environment_immediately():
+    """Sanitize environment variables immediately before any other processing"""
+    print("🚨 CRITICAL: Sanitizing environment variables immediately...")
+    
+    # Get all environment variables
+    env_vars = dict(os.environ)
+    cleaned_count = 0
+    
+    for key, value in env_vars.items():
+        if isinstance(value, str):
+            # Remove null bytes and control characters
+            cleaned_value = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', value)
+            
+            # Remove Unicode escape sequences
+            cleaned_value = re.sub(r'\\u0000', '', cleaned_value)
+            
+            # Remove any remaining problematic characters
+            cleaned_value = cleaned_value.strip()
+            
+            if cleaned_value != value:
+                os.environ[key] = cleaned_value
+                cleaned_count += 1
+                print(f"🧹 Cleaned {key}: removed problematic characters")
+    
+    print(f"✅ Immediately sanitized {cleaned_count} environment variables")
+
+# Execute immediately
+sanitize_environment_immediately()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -58,7 +88,7 @@ def sanitize_environment():
                 os.environ[var_name] = sanitized_value
                 cleaned_count += 1
     
-    # Clean ALL environment variables
+    # Clean ALL environment variables again
     env_vars = dict(os.environ)
     for key, value in env_vars.items():
         if isinstance(value, str):
