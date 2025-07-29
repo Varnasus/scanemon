@@ -30,6 +30,29 @@ COPY . .
 # Create a non-root user for security
 RUN useradd --create-home --shell /bin/bash app && \
     chown -R app:app /app
+
+# Create a startup wrapper script
+RUN echo '#!/bin/bash\n\
+echo "🚨 RAILWAY ENVIRONMENT FIX: Starting environment sanitization..."\n\
+python3 -c "\n\
+import os, re\n\
+env_vars = dict(os.environ)\n\
+cleaned = 0\n\
+for key, value in env_vars.items():\n\
+    if isinstance(value, str):\n\
+        cleaned_value = re.sub(r\"[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]\", \"\", value)\n\
+        cleaned_value = re.sub(r\"\\\\u0000\", \"\", cleaned_value)\n\
+        cleaned_value = cleaned_value.strip()\n\
+        if cleaned_value != value:\n\
+            os.environ[key] = cleaned_value\n\
+            cleaned += 1\n\
+            print(f\"🧹 Cleaned {key}: removed problematic characters\")\n\
+print(f\"✅ Sanitized {cleaned} environment variables\")\n\
+"\n\
+echo "🚀 Starting main application..."\n\
+exec python3 railway_start.py\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
 USER app
 
 # Expose port
@@ -39,5 +62,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the application using the Railway startup script
-CMD ["python", "railway_start.py"] 
+# Run the startup wrapper script
+CMD ["/app/start.sh"] 
